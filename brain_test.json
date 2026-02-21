@@ -1,0 +1,3435 @@
+[
+  {
+    "from": {
+      "Opcode": {
+<<<<<<< HEAD
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": -1.465885842283561e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "weight": 3.569054762623527e-17
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": -3.7490270020090784e-17
+  },
+  {
+    "from": "MemoryRead",
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": -1.2496993090609638e-18
+  },
+  {
+    "from": "MemoryRead",
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": 1.1574348692241685e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+=======
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+<<<<<<< HEAD
+    "weight": 2.5258685978570125e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": -5.6077179481186805
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "weight": 3.541626871135945e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "to": "Reward",
+    "weight": 4.7732701807461474e-6
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": 8.508435349260673e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": 2.2401611631354287e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": -2.5e-323
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": -6.1080065510547925
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": -1.0525859000548277e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "weight": -1.9508811051348052e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": -1.9500785211785632e-17
+  },
+  {
+    "from": "MemoryWrite",
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": 8.993420648798998e-18
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": "MemoryRead",
+    "weight": -1.9524210946068063e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": "MemoryWrite",
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": 6.422264118687419e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": "MemoryRead",
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": "Reward",
+    "weight": -35.00906192021895
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": 4.985315307474708
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "weight": -35.035071672066366
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": "MemoryRead",
+    "weight": 5.77347754964749e-19
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": 3.393358064401569e-18
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": 1.6149687480025833e-18
+=======
+    "weight": -0.009437636978229254
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+<<<<<<< HEAD
+    "weight": 2.816149946501144e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": -30.310346286842076
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": "MemoryRead",
+    "weight": -1.952120777868813e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": -5.634990052148237
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": 4.696097276801479e-19
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "to": "MemoryRead",
+    "weight": 8.780529090784233e-19
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": 0.014638882470701955
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": -2.0641069887860922e-7
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": "MemoryRead",
+    "weight": -0.0
+  },
+  {
+    "from": "MemoryWrite",
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": -7.898398772213306e-19
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "to": "MemoryRead",
+    "weight": -2.5e-323
+  },
+  {
+    "from": "MemoryWrite",
+    "to": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "weight": -7.9029336918715035e-19
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": "MemoryWrite",
+    "weight": -1.9516407873610078e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": -35.24805401998067
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "weight": 4.566590855862399e-19
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": 2.980926017878757e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": -1.9497785781229358e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "weight": -35.13753951522096
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": -2.5e-323
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": "Reward",
+    "weight": 1.801209019803564e-16
+  },
+  {
+    "from": "Reward",
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": 1.2573052471699952e-7
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": -0.0
+  },
+  {
+    "from": "MemoryRead",
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": 1.131438878211301e-18
+  },
+  {
+    "from": "MemoryRead",
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": 1.0555824112660979e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": 6.489872818749089e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "weight": 5.773991628382242e-19
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "weight": -35.0261273067052
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": 5.472629829120779e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": -35.06575427185188
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": -5.897029632780226
+  },
+  {
+    "from": "Reward",
+    "to": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "weight": 1.201185979696473e-11
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": 1.5242991180391718e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "weight": -2.4555300997349156e-7
+  },
+  {
+    "from": "MemoryRead",
+    "to": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "weight": -1.2510890695833353e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "weight": -1.951945488241377e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": 5.553285975115578e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "weight": -35.19361458318726
+  },
+  {
+    "from": "MemoryRead",
+    "to": "Reward",
+    "weight": 1.7890480699421673e-17
+  },
+  {
+    "from": "MemoryWrite",
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": 1.8694189192512654e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": "MemoryRead",
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": "MemoryWrite",
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "weight": 4.56910893625492e-19
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": -5.756627824340378
+  },
+  {
+    "from": "Reward",
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": 0.014639267005242857
+  },
+  {
+    "from": "MemoryRead",
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": 1.0585169902324018e-17
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": -2.3987581348777674e-18
+  },
+  {
+    "from": "MemoryRead",
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": 8.777005027432144e-19
+  },
+  {
+    "from": "MemoryWrite",
+    "to": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "weight": 3.542274301476286e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": 2.0782189476102684e-18
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "weight": 3.568401208604353e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": -5.830587007001687
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": -5.758351122796348
+=======
+    "weight": -0.26879751306716365
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+<<<<<<< HEAD
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": -0.0
+  },
+  {
+    "from": "Reward",
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": 0.00004293087325798568
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "weight": -1.053181883843628e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": "MemoryRead",
+    "weight": 4.566185878738409e-19
+  },
+  {
+    "from": "MemoryWrite",
+    "to": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "weight": 6.585142247039937e-19
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": -2.189827396148995e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "weight": 3.5436117930334e-18
+=======
+    "weight": 0.09743860845669813
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": {
+<<<<<<< HEAD
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": -4.190709381152324e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "weight": -2.5e-323
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "to": "Reward",
+    "weight": 1.7889010467116678e-17
+  },
+  {
+    "from": {
+=======
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+<<<<<<< HEAD
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": -2.19139285673588e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "weight": -0.0
+  },
+  {
+    "from": "MemoryWrite",
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": 7.090465640395412e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": 0.00004148874811898889
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": -3.4192371476406105e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": -30.14932168655497
+  },
+  {
+    "from": "MemoryRead",
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": -1.2030337996526215e-19
+=======
+    "weight": -1.7141716102881543
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+<<<<<<< HEAD
+    "to": "Reward",
+    "weight": -35.194064535504786
+=======
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": 3.8748613105480576
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+<<<<<<< HEAD
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "weight": -1.9511812293149345e-17
+  },
+  {
+    "from": "MemoryWrite",
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": 7.154824303724633e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": "MemoryWrite",
+    "weight": -1.9513406055716623e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+=======
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+<<<<<<< HEAD
+    "to": "MemoryRead",
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": -5.829520902107762
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": 7.834637316913293e-18
+=======
+    "weight": -8.421055134340898
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": "MemoryWrite",
+<<<<<<< HEAD
+    "weight": -0.0
+=======
+    "weight": 0.03335963576080365
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": "MemoryWrite",
+    "weight": 0.021918183699519075
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": -0.4645224071052523
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": 1.4867015853713967
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "weight": 0.0947901698396706
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": "MemoryWrite",
+    "weight": -1.817699746270965
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": 1.8106724787180215
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "weight": -1.8338902918316728
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "weight": -0.23367668807988437
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": 1.6661599953820982
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": "MemoryRead",
+    "weight": 0.19386122491537652
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": "MemoryRead",
+    "weight": -1.836860318575642
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": 1.3652316454001592
+  },
+  {
+    "from": "MemoryWrite",
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": -0.23407423340382655
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": 1.8293580237701785
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": -2.195229628524214
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": "MemoryRead",
+    "weight": 0.08747382660951049
+  },
+  {
+    "from": "MemoryRead",
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": -0.23263346989845185
+  },
+  {
+    "from": "MemoryRead",
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": 1.8499062693712545
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": 1.4785829899098362
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": -1.7023462290844387
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": -6.258552411907851
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": "MemoryWrite",
+    "weight": -2.2030999905466895
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": 0.09505406130469549
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "weight": 0.1940804880508767
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "weight": -2.172806974461626
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": "MemoryRead",
+    "weight": 0.1945100511422747
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "weight": -2.20267059062207
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": 0.1754211372268121
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": -0.03718058746060901
+  },
+  {
+    "from": "MemoryRead",
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": 1.390260982800474
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": 1.3876271355337542
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "weight": 0.19509985858698503
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "weight": -2.1871236180159426
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": -8.047567698566235
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": -8.639350619293891
+  },
+  {
+    "from": "MemoryRead",
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": -0.4968679573495173
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "weight": 0.1947305733999036
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": "MemoryRead",
+    "weight": 0.09975074710886495
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": -0.46607083764416224
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": -0.5028344567598861
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": -0.23411983030438197
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "weight": 0.0875326497071192
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+<<<<<<< HEAD
+    "weight": -0.0
+=======
+    "weight": 1.6332197945240132
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": -8.758494977447908
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": -1.8084680615557047
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": -2.475945852019058
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": 0.025680242646385316
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": -4.435117183096517
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": 1.372975889528433
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": 3.528100849311786
+  },
+  {
+    "from": "MemoryRead",
+    "to": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "weight": -0.2349922404509685
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": -4.296239854627899
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": "MemoryWrite",
+    "weight": 0.09477183899614235
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": "MemoryWrite",
+    "weight": -2.173230718858379
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": -3.769185380094653
+  },
+  {
+    "from": "MemoryWrite",
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": -0.464431941224778
+  },
+  {
+    "from": "MemoryWrite",
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": 1.835916658788908
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": 1.8045004586399287
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": -0.46209238311884454
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "to": "MemoryRead",
+    "weight": 0.19582686704247382
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": 1.8110610009063663
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "weight": -1.8171952589222746
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": "MemoryRead",
+    "weight": 0.0343800770999838
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": -6.474307789135475
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": -0.07515141505357859
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": -0.6963537652562082
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": -0.00936004518347807
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "to": "MemoryWrite",
+    "weight": -0.2337222189279469
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": -0.23289658566105204
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": -0.01712632008988372
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+  },
+  {
+    "from": "MemoryRead",
+    "to": "MemoryWrite",
+<<<<<<< HEAD
+    "weight": -1.2506993985519655e-18
+=======
+    "weight": -0.2334575390851306
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+<<<<<<< HEAD
+        "stack_depth": 0
+      }
+    },
+    "weight": 9.091173645736514e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": -5.9025926422527295
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": "Reward",
+    "weight": -28.71082866665465
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": -5.861227526614487
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": -4.1888512609633255e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+=======
+        "stack_depth": 1
+      }
+    },
+    "weight": -0.49787177035940694
+  },
+  {
+    "from": "MemoryRead",
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+    "to": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+<<<<<<< HEAD
+    "weight": -2.5e-323
+  },
+  {
+    "from": "MemoryWrite",
+=======
+    "weight": -0.23341206137072965
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": 0.020448689752463913
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": -0.27099490737161774
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+<<<<<<< HEAD
+    "weight": 2.0472885856197572e-18
+  },
+  {
+    "from": "MemoryRead",
+    "to": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "weight": 3.543902993863536e-18
+=======
+    "weight": -4.355489048826519
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "weight": 0.032705855701393984
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": -0.02659424988094703
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": 1.505351020859143
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": "MemoryWrite",
+<<<<<<< HEAD
+    "weight": 4.568124342286115e-19
+  },
+  {
+    "from": "MemoryWrite",
+    "to": "Reward",
+    "weight": 1.7882257659475434e-17
+=======
+    "weight": 0.19506186116985552
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": -6.5635702773513795
+  },
+  {
+    "from": "MemoryWrite",
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": 1.3734238252696684
+  },
+  {
+    "from": "MemoryWrite",
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": 1.811025599048649
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": "MemoryRead",
+    "weight": -2.189652571808253
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": 1.4135207486450594
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": -0.02378473322049447
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": "MemoryWrite",
+    "weight": 0.1957127406791724
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": -0.06993393945242453
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": 1.755912996750755
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": -0.02130794888685427
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": 1.8477922435750764
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": 1.475506801607636
+  },
+  {
+    "from": "MemoryRead",
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": -0.4615709588571233
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "weight": 0.03337546683319716
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": "MemoryRead",
+    "weight": -2.219887523245505
+  },
+  {
+    "from": "MemoryRead",
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": 1.824710476506878
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": -0.10306733605524658
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": 1.8355588255183917
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "weight": 0.02049408504799319
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": -2.1654005503679135
+  },
+  {
+    "from": "MemoryWrite",
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": -0.5026607574332388
+  },
+  {
+    "from": "MemoryWrite",
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": -0.26866927550296826
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": -7.638508772361218
+  },
+  {
+    "from": "MemoryWrite",
+    "to": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "weight": -0.23485528881500686
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+  },
+  {
+    "from": "MemoryWrite",
+    "to": "MemoryRead",
+<<<<<<< HEAD
+    "weight": 6.584555287818526e-19
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": -2.5e-323
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "weight": -6.92858923287978e-19
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": -1.465882080074934e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": "MemoryWrite",
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "weight": 3.53959730559923e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": "Reward",
+    "weight": 1.7878988874529642e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": -35.23422264859876
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "weight": -2.3860969574952387e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "to": "MemoryWrite",
+    "weight": 5.775878989182327e-19
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 16,
+        "stack_depth": 1
+      }
+    },
+    "to": "MemoryWrite",
+    "weight": -2.5e-323
+  },
+  {
+    "from": "Reward",
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": 4.985317676021605
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "weight": -1.9522457781995016e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": "Reward",
+    "weight": 1.8015389119108096e-16
+=======
+    "weight": 0.19454794923760882
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+  },
+  {
+    "from": "MemoryRead",
+    "to": {
+      "Opcode": {
+<<<<<<< HEAD
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "weight": -1.250406356333748e-18
+=======
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": -0.6955677740174322
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+  },
+  {
+    "from": {
+      "Opcode": {
+<<<<<<< HEAD
+        "opcode": 0,
+=======
+        "opcode": 7,
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+<<<<<<< HEAD
+        "opcode": 6,
+        "stack_depth": 2
+      }
+    },
+    "weight": -0.0
+=======
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "weight": 1.8226030150132864
+  },
+  {
+    "from": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "weight": -2.2173506922900916
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+  },
+  {
+    "from": "MemoryWrite",
+    "to": {
+      "Opcode": {
+<<<<<<< HEAD
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": 2.7045156416691956e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 9,
+        "stack_depth": 2
+      }
+    },
+    "to": "Reward",
+    "weight": 1.7868741883800325e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+=======
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+<<<<<<< HEAD
+    "to": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "weight": 1.3031528606924689e-18
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": "Reward",
+    "weight": -35.026431436522394
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 8,
+        "stack_depth": 0
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": -3.744997703437025e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": -0.0
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "to": "MemoryWrite",
+    "weight": -1.0534265902649336e-18
+  },
+  {
+    "from": "Reward",
+    "to": "Reward",
+    "weight": 3.5735749472399356e-10
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 1,
+        "stack_depth": 2
+      }
+    },
+    "weight": 1.0445230289331625e-17
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Opcode": {
+        "opcode": 0,
+        "stack_depth": 0
+      }
+    },
+    "weight": -30.120737839485074
+  },
+  {
+    "from": {
+      "Opcode": {
+        "opcode": 7,
+        "stack_depth": 1
+      }
+    },
+    "to": {
+      "Error": {
+        "InvalidOpcode": 1
+      }
+    },
+    "weight": 9.048974462503515e-18
+=======
+    "weight": 0.19476851577328907
+>>>>>>> codex/explore-features-for-agi-vm-improvement-bnoa3g
+  }
+]

@@ -1,0 +1,20 @@
+# --- Build Artifacts ---
+/target
+
+# --- Backup and Temp Files ---
+**/*.rs.bk
+# Created by Cargo when projects are renamed
+Cargo.lock.orig
+
+# --- IDEs and Editors ---
+.vscode/
+.idea/
+*.swp
+*~
+
+# --- OS Generated Files ---
+.DS_Store
+Thumbs.db
+
+# --- Logs ---
+*.log

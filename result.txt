@@ -1,0 +1,11 @@
+SoulGain Collatz Test Result
+============================
+Time Taken: 82.50ms
+
+[Raw Opcodes]
+[9408.0, 8.0]
+
+[Decompiled Trace]
+
+SKILL_9408 (Start) { Dup Eq
+} SKILL_9408 (End) Halt
