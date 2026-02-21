@@ -6,6 +6,48 @@ use std::fs::File;
 use std::io::{self, BufReader, BufWriter};
 use std::path::Path;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// WorldModel trait – implement this to plug in any environment
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// A discrete, stateful environment that the active-inference loop can drive.
+///
+/// # Example – a 4-state ring world
+/// ```rust
+/// struct RingWorld { state: usize }
+///
+/// impl WorldModel for RingWorld {
+///     fn num_states(&self) -> usize { 4 }
+///     fn current_state(&self) -> usize { self.state }
+///     fn sense(&mut self) -> f64 { self.state as f64 }
+///     fn step(&mut self, action: Op) -> (usize, f64) {
+///         self.state = (self.state + 1) % 4;
+///         (self.state, self.sense())
+///     }
+/// }
+/// ```
+pub trait WorldModel {
+    /// Total number of distinct hidden states the model can be in.
+    fn num_states(&self) -> usize;
+
+    /// Index of the current hidden state.
+    fn current_state(&self) -> usize;
+
+    /// Return a (possibly noisy) observation of the current state.
+    fn sense(&mut self) -> f64;
+
+    /// Advance the world by one action; return `(next_state, observation)`.
+    fn step(&mut self, action: Op) -> (usize, f64);
+
+    /// Optional: apply a dramatic structural change to the world's dynamics.
+    /// The default is a no-op; implementors may override as needed.
+    fn flip_physics(&mut self) {}
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ReasoningConfig & MCTS solve
+// ─────────────────────────────────────────────────────────────────────────────
+
 #[derive(Clone, Debug)]
 pub struct ReasoningConfig {
     pub simulations: u32,
@@ -186,15 +228,70 @@ impl MctsNodeFlat {
     }
 }
 
+/// Benchmark statistics returned by [`solve_with_stats`].
+#[derive(Clone, Debug)]
+pub struct SolveStats {
+    /// How many MCTS simulations actually ran (may be < config.simulations on early exit).
+    pub simulations_run: u32,
+    /// Wall-clock time for the entire search in milliseconds.
+    pub elapsed_ms: f64,
+    /// Simulations per second.
+    pub sims_per_sec: f64,
+    /// Total tree nodes allocated in the arena.
+    pub nodes_allocated: usize,
+    /// Average tree depth traversed during the selection phase per simulation.
+    pub avg_selection_depth: f64,
+    /// Total op-execution cycles across all rollouts (selection replays + evaluation).
+    pub total_op_cycles: u64,
+    /// Op cycles per simulation.
+    pub op_cycles_per_sim: f64,
+    /// How many simulations ended in a crash.
+    pub crash_count: u32,
+    /// Best score found (0.0 if nothing useful was found).
+    pub best_score: f32,
+    /// Whether the search hit the 0.999 early-exit threshold.
+    pub solved_early: bool,
+}
+
+/// Convenience wrapper: runs the search and discards the stats.
 pub fn solve(
     root_state: &CoreMind,
     task: &TaskSpec,
     config: &ReasoningConfig,
     policy: &dyn CognitivePolicy,
 ) -> Option<Vec<Op>> {
+    solve_with_stats(root_state, task, config, policy).0
+}
+
+/// Full search returning both the best program and detailed benchmark stats.
+pub fn solve_with_stats(
+    root_state: &CoreMind,
+    task: &TaskSpec,
+    config: &ReasoningConfig,
+    policy: &dyn CognitivePolicy,
+) -> (Option<Vec<Op>>, SolveStats) {
+    use std::time::Instant;
+
     if task.train_cases.is_empty() {
-        return None;
+        return (None, SolveStats {
+            simulations_run: 0, elapsed_ms: 0.0, sims_per_sec: 0.0,
+            nodes_allocated: 0, avg_selection_depth: 0.0, total_op_cycles: 0,
+            op_cycles_per_sim: 0.0, crash_count: 0, best_score: 0.0, solved_early: false,
+        });
     }
+
+    let t0 = Instant::now();
+
+    // Seed the search state from the first training case so the VM stack is
+    // non-empty and ops like Inc, Add, Dup can execute without crashing.
+    // aggregate_value always re-evaluates against all cases anyway.
+    let seeded_root: CoreMind = {
+        let mut s = root_state.clone();
+        if let Some(first) = task.train_cases.first() {
+            s.reset(&first.input);
+        }
+        s
+    };
 
     let mut tree_storage = Vec::with_capacity(config.arena_capacity);
     tree_storage.push(MctsNodeFlat::new(Op::Halt, 0, 1.0));
@@ -202,10 +299,20 @@ pub fn solve(
 
     let mut best_program: Option<(Vec<Op>, f32)> = None;
 
+    // instrumentation
+    let mut sims_run: u32 = 0;
+    let mut total_depth: u64 = 0;
+    let mut total_op_cycles: u64 = 0;
+    let mut crash_count: u32 = 0;
+    let mut solved_early = false;
+
     for _ in 0..config.simulations {
+        sims_run += 1;
+
         let mut node_idx = root_node_idx;
         let mut op_path = Vec::with_capacity(config.max_program_len);
 
+        // selection
         let mut depth = 0;
         while tree_storage[node_idx].children_head != 0 && depth < config.max_program_len {
             let current = &tree_storage[node_idx];
@@ -233,12 +340,16 @@ pub fn solve(
             op_path.push(tree_storage[node_idx].op);
             depth += 1;
         }
+        total_depth += depth as u64;
 
-        let mut state = root_state.clone();
+        // rollout — use the seeded state so ops have valid stack input
+        let mut state = seeded_root.clone();
         let mut crashed = false;
         for &op in &op_path {
+            total_op_cycles += 1;
             if matches!(state.step(op), StepStatus::Crash) {
                 crashed = true;
+                crash_count += 1;
                 break;
             }
         }
@@ -246,6 +357,8 @@ pub fn solve(
         let (value, terminal) = if crashed {
             (-0.1, true)
         } else if state.is_halted() || depth >= config.max_program_len {
+            // aggregate_value re-runs the program against all train cases
+            total_op_cycles += (task.train_cases.len() * op_path.len().min(config.max_ops_per_candidate)) as u64;
             (aggregate_value(root_state, task, &op_path, config), true)
         } else {
             let priors = policy.priors(&state);
@@ -270,14 +383,13 @@ pub fn solve(
             }
         };
 
+        // backprop
         let mut curr = node_idx;
         loop {
             let node = &mut tree_storage[curr as usize];
             node.visits += 1;
             node.value_sum += value;
-            if curr == root_node_idx {
-                break;
-            }
+            if curr == root_node_idx { break; }
             curr = node.parent as usize;
         }
 
@@ -289,13 +401,34 @@ pub fn solve(
             if update {
                 best_program = Some((op_path, value));
                 if value >= 0.999 {
+                    solved_early = true;
                     break;
                 }
             }
         }
     }
 
-    best_program.map(|(p, _)| p)
+    let elapsed_ms = t0.elapsed().as_secs_f64() * 1000.0;
+    let sims_per_sec = if elapsed_ms > 0.0 {
+        sims_run as f64 / (elapsed_ms / 1000.0)
+    } else {
+        f64::INFINITY
+    };
+
+    let stats = SolveStats {
+        simulations_run: sims_run,
+        elapsed_ms,
+        sims_per_sec,
+        nodes_allocated: tree_storage.len(),
+        avg_selection_depth: total_depth as f64 / sims_run.max(1) as f64,
+        total_op_cycles,
+        op_cycles_per_sim: total_op_cycles as f64 / sims_run.max(1) as f64,
+        crash_count,
+        best_score: best_program.as_ref().map(|(_, s)| *s).unwrap_or(0.0),
+        solved_early,
+    };
+
+    (best_program.map(|(p, _)| p), stats)
 }
 
 fn aggregate_value(
@@ -368,6 +501,10 @@ fn aggregate_value(
     score.clamp(-1.0, 1.0)
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// WorldConfig / WorldGenerator  (built-in WorldModel implementation)
+// ─────────────────────────────────────────────────────────────────────────────
+
 #[derive(Clone, Debug)]
 pub struct WorldConfig {
     pub hidden_states: usize,
@@ -388,7 +525,7 @@ impl Default for WorldConfig {
 #[derive(Clone, Debug)]
 pub struct WorldGenerator {
     state: usize,
-    transitions: Vec<Vec<f64>>,
+    pub transitions: Vec<Vec<f64>>,
     latent_values: Vec<f64>,
     rng: u64,
     noise: f64,
@@ -407,11 +544,7 @@ impl WorldGenerator {
         let latent_values = (0..n)
             .map(|idx| {
                 let base = (idx as f64 + 1.0) * 1.7;
-                if (idx + 1) % 7 == 0 {
-                    base + 11.0
-                } else {
-                    base
-                }
+                if (idx + 1) % 7 == 0 { base + 11.0 } else { base }
             })
             .collect();
 
@@ -424,33 +557,11 @@ impl WorldGenerator {
         }
     }
 
-    pub fn current_state(&self) -> usize {
-        self.state
-    }
-
-    pub fn sense(&mut self) -> f64 {
-        let noise = (self.next_f64() - 0.5) * 2.0 * self.noise;
-        self.latent_values[self.state] + noise
-    }
-
-    pub fn step(&mut self, action: Op) -> (usize, f64) {
-        let action_shift = (action as usize) % self.transitions.len();
-        let base_row = &self.transitions[self.state];
-        let mut rolled = vec![0.0; base_row.len()];
-        for (idx, prob) in base_row.iter().enumerate() {
-            let target = (idx + action_shift) % base_row.len();
-            rolled[target] += *prob;
-        }
-        let next = self.sample_distribution(&rolled);
-        self.state = next;
-        (next, self.sense())
-    }
-
-    // NEW: The "Catastrophe" tool
-    pub fn flip_physics(&mut self) {
-        for row in self.transitions.iter_mut() {
-            row.reverse();
-        }
+    fn next_f64(&mut self) -> f64 {
+        self.rng ^= self.rng << 13;
+        self.rng ^= self.rng >> 7;
+        self.rng ^= self.rng << 17;
+        (self.rng as f64 / u64::MAX as f64).clamp(0.0, 1.0)
     }
 
     pub fn sample_distribution(&mut self, probs: &[f64]) -> usize {
@@ -464,14 +575,46 @@ impl WorldGenerator {
         }
         probs.len().saturating_sub(1)
     }
+}
 
-    fn next_f64(&mut self) -> f64 {
-        self.rng ^= self.rng << 13;
-        self.rng ^= self.rng >> 7;
-        self.rng ^= self.rng << 17;
-        (self.rng as f64 / u64::MAX as f64).clamp(0.0, 1.0)
+/// `WorldGenerator` implements `WorldModel`, making it a first-class plug-in.
+impl WorldModel for WorldGenerator {
+    fn num_states(&self) -> usize {
+        self.transitions.len()
+    }
+
+    fn current_state(&self) -> usize {
+        self.state
+    }
+
+    fn sense(&mut self) -> f64 {
+        let noise = (self.next_f64() - 0.5) * 2.0 * self.noise;
+        self.latent_values[self.state] + noise
+    }
+
+    fn step(&mut self, action: Op) -> (usize, f64) {
+        let action_shift = (action as usize) % self.transitions.len();
+        let base_row = &self.transitions[self.state];
+        let mut rolled = vec![0.0; base_row.len()];
+        for (idx, prob) in base_row.iter().enumerate() {
+            let target = (idx + action_shift) % base_row.len();
+            rolled[target] += *prob;
+        }
+        let next = self.sample_distribution(&rolled);
+        self.state = next;
+        (next, self.sense())
+    }
+
+    fn flip_physics(&mut self) {
+        for row in self.transitions.iter_mut() {
+            row.reverse();
+        }
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ForwardModel  (internal world-model learned by the agent)
+// ─────────────────────────────────────────────────────────────────────────────
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ForwardModel {
@@ -529,6 +672,10 @@ impl ForwardModel {
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ActiveInference – generic over any WorldModel
+// ─────────────────────────────────────────────────────────────────────────────
+
 #[derive(Clone, Debug)]
 pub struct ActiveInferenceConfig {
     pub steps: usize,
@@ -543,8 +690,8 @@ impl Default for ActiveInferenceConfig {
     fn default() -> Self {
         Self {
             steps: 300,
-            imagination_rollouts: 96,
-            rollout_depth: 8,
+            imagination_rollouts: 24,
+            rollout_depth: 6,
             curiosity_weight: 0.3,
             effort_weight: 0.08,
             action_space: vec![
@@ -565,19 +712,46 @@ pub struct ActiveInferenceReport {
     pub average_surprisal: f64,
     pub average_free_energy: f64,
     pub unique_states_seen: usize,
+    /// Wall-clock time for the episode in milliseconds.
+    pub elapsed_ms: f64,
+    /// Environment steps per second.
+    pub steps_per_sec: f64,
+    /// Total imagination cycles run (steps × rollouts × rollout_depth).
+    pub total_imagination_cycles: u64,
+    /// Imagination cycles per real environment step.
+    pub imagination_cycles_per_step: f64,
 }
 
+/// Run one active-inference episode against **any** world that implements [`WorldModel`].
+///
+/// The signature was previously `world: &mut WorldGenerator`, which locked the
+/// function to a single concrete type. It now accepts `world: &mut dyn WorldModel`,
+/// so you can pass any implementation without modifying this file:
+///
+/// ```rust
+/// run_active_inference_episode(&mut WorldGenerator::new(&cfg), &plasticity, &config);
+/// run_active_inference_episode(&mut my_custom_env,             &plasticity, &config);
+/// run_active_inference_episode(&mut wrapped_gym_env,           &plasticity, &config);
+/// ```
 pub fn run_active_inference_episode(
-    world: &mut WorldGenerator,
+    world: &mut dyn WorldModel,
     plasticity: &Plasticity,
     config: &ActiveInferenceConfig,
 ) -> ActiveInferenceReport {
-    let mut model = ForwardModel::new(world.transitions.len(), config.action_space.len());
+    use std::time::Instant;
+    let t0 = Instant::now();
+
+    let mut model = ForwardModel::new(world.num_states(), config.action_space.len());
     let mut running_surprisal = 0.0;
     let mut running_fe = 0.0;
     let mut seen_states = std::collections::HashSet::new();
+    let mut total_imagination_cycles: u64 = 0;
 
     for _ in 0..config.steps {
+        // each step runs: actions × rollouts × depth imagination cycles
+        total_imagination_cycles += (config.action_space.len()
+            * config.imagination_rollouts
+            * config.rollout_depth) as u64;
         let state = world.current_state();
         seen_states.insert(state);
 
@@ -595,11 +769,7 @@ pub fn run_active_inference_episode(
         let (next_state, _obs) = world.step(action);
         let prob = predicted.get(next_state).copied().unwrap_or(1e-6).max(1e-6);
         let surprisal = (-prob.ln()).clamp(0.0, 10.0);
-        let prediction_error = if predicted_peak == next_state {
-            0.0
-        } else {
-            1.0
-        };
+        let prediction_error = if predicted_peak == next_state { 0.0 } else { 1.0 };
 
         model.update(state, action_idx, next_state, surprisal);
 
@@ -626,10 +796,20 @@ pub fn run_active_inference_episode(
     }
 
     let denom = config.steps.max(1) as f64;
+    let elapsed_ms = t0.elapsed().as_secs_f64() * 1000.0;
+    let steps_per_sec = if elapsed_ms > 0.0 {
+        config.steps as f64 / (elapsed_ms / 1000.0)
+    } else {
+        f64::INFINITY
+    };
     ActiveInferenceReport {
         average_surprisal: running_surprisal / denom,
         average_free_energy: running_fe / denom,
         unique_states_seen: seen_states.len(),
+        elapsed_ms,
+        steps_per_sec,
+        total_imagination_cycles,
+        imagination_cycles_per_step: total_imagination_cycles as f64 / config.steps.max(1) as f64,
     }
 }
 
@@ -652,10 +832,8 @@ fn imagine_best_action(
                 let imagined_action = (action_idx + depth) % config.action_space.len();
                 let uncertainty = model.expected_surprisal(rollout_state, imagined_action);
                 let effort = model.metabolic_cost(imagined_action);
-                
-                // FIXED: MINIMIZING score means seeking HIGH uncertainty (negative contribution)
+                // Minimise score → seek HIGH curiosity and LOW effort.
                 score += (config.effort_weight * effort) - (config.curiosity_weight * uncertainty);
-                
                 let dist = model.predict_distribution(rollout_state, imagined_action);
                 rollout_state = sample_from_distribution(&dist, (rollout + depth + 1) as u64);
             }
