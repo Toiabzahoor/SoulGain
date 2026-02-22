@@ -1,393 +1,289 @@
-//! syn.rs – Extended MCTS problem suite + inference benchmark
+//! syn.rs – Human vs. Robot: The True Grandmaster Update! 🤖⭕❌
 //!
-//! Tiered from trivial → hard, each problem has a known correct program
-//! so we can verify the solver actually finds the right answer, not just
-//! any program that scores well on the training cases.
+//! The Robot now calculates the AVERAGE outcome of 30 different timelines 
+//! for every single move, curing its optimism and making it a defensive monster!
 
+use std::io::{self, Write};
+use std::time::{SystemTime, UNIX_EPOCH};
 use soulgain::alphazero::{
-    run_active_inference_episode, ActiveInferenceConfig,
-    ReasoningConfig, TaskExample, TaskSpec, UniversalPolicy,
-    WorldConfig, WorldGenerator, WorldModel, solve_with_stats,
+    CognitivePolicy, ReasoningConfig, UniversalWorld, solve_universal_with_stats
 };
-use soulgain::plasticity::Plasticity;
-use soulgain::vm::{CoreMind, Op};
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Custom worlds for inference section
+// 1. The Game Board & Rules 🎲
 // ─────────────────────────────────────────────────────────────────────────────
 
-struct BinaryCounter { state: usize }
-impl WorldModel for BinaryCounter {
-    fn num_states(&self) -> usize { 8 }
-    fn current_state(&self) -> usize { self.state }
-    fn sense(&mut self) -> f64 { self.state as f64 }
-    fn step(&mut self, _: Op) -> (usize, f64) {
-        self.state = (self.state + 1) % 8;
-        (self.state, self.sense())
-    }
+#[derive(Clone, Debug)]
+struct TicTacToe {
+    board: [u8; 9], 
+    seed: u64,      
 }
 
-struct XorWorld { state: usize, n: usize }
-impl WorldModel for XorWorld {
-    fn num_states(&self) -> usize { self.n }
-    fn current_state(&self) -> usize { self.state }
-    fn sense(&mut self) -> f64 { self.state as f64 / self.n as f64 }
-    fn step(&mut self, action: Op) -> (usize, f64) {
-        self.state = (self.state ^ (action as usize % self.n)) % self.n;
-        (self.state, self.sense())
+impl TicTacToe {
+    fn check_winner(&self) -> u8 {
+        let b = self.board;
+        let lines = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], 
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], 
+            [0, 4, 8], [2, 4, 6]             
+        ];
+        for l in lines {
+            if b[l[0]] != 0 && b[l[0]] == b[l[1]] && b[l[1]] == b[l[2]] {
+                return b[l[0]];
+            }
+        }
+        0
     }
-}
 
-struct StochasticGrid { state: usize, seed: u64 }
-impl StochasticGrid {
-    fn rand(&mut self) -> f64 {
-        self.seed ^= self.seed << 13;
-        self.seed ^= self.seed >> 7;
-        self.seed ^= self.seed << 17;
-        (self.seed as f64 / u64::MAX as f64).clamp(0.0, 1.0)
+    fn find_winning_move(&self, player: u8) -> Option<usize> {
+        let lines = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
+        ];
+        for l in lines {
+            let p_count = (self.board[l[0]] == player) as u8 
+                        + (self.board[l[1]] == player) as u8 
+                        + (self.board[l[2]] == player) as u8;
+            let empty_count = (self.board[l[0]] == 0) as u8 
+                            + (self.board[l[1]] == 0) as u8 
+                            + (self.board[l[2]] == 0) as u8;
+            
+            if p_count == 2 && empty_count == 1 {
+                for &idx in &l {
+                    if self.board[idx] == 0 { return Some(idx); }
+                }
+            }
+        }
+        None
     }
-}
-impl WorldModel for StochasticGrid {
-    fn num_states(&self) -> usize { 9 }
-    fn current_state(&self) -> usize { self.state }
-    fn sense(&mut self) -> f64 {
-        let r = self.state / 3;
-        let c = self.state % 3;
-        ((r as i32 - 1).abs() + (c as i32 - 1).abs()) as f64
-    }
-    fn step(&mut self, action: Op) -> (usize, f64) {
-        let r = self.state / 3;
-        let c = self.state % 3;
-        let (dr, dc) = match action as usize % 4 {
-            0 => (0i32, 1i32), 1 => (0, -1), 2 => (-1, 0), _ => (1, 0),
+
+    fn print_board(&self) {
+        let ch = |i, c| match c { 
+            1 => "❌".to_string(), 
+            2 => "⭕".to_string(), 
+            _ => format!(" {} ", i) 
         };
-        let noise = self.rand();
-        let (dr, dc) = if noise < 0.8 { (dr, dc) }
-                       else if noise < 0.9 { (dc, dr) }
-                       else { (-dc, -dr) };
-        self.state = ((r as i32 + dr).clamp(0, 2) as usize) * 3
-                   + ((c as i32 + dc).clamp(0, 2) as usize);
-        (self.state, self.sense())
+        println!("   │   │   ");
+        println!(" {}│{}│{}", ch(0, self.board[0]), ch(1, self.board[1]), ch(2, self.board[2]));
+        println!(" ──┼───┼── ");
+        println!(" {}│{}│{}", ch(3, self.board[3]), ch(4, self.board[4]), ch(5, self.board[5]));
+        println!(" ──┼───┼── ");
+        println!(" {}│{}│{}", ch(6, self.board[6]), ch(7, self.board[7]), ch(8, self.board[8]));
+        println!("   │   │   \n");
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Task builder
+// 2. The AI's Dream Simulator (Averaging Multiple Timelines) 🧠☁️
 // ─────────────────────────────────────────────────────────────────────────────
 
-fn task(pairs: &[(&[i64], &[i64])]) -> TaskSpec {
-    use soulgain::types::UVal;
-    TaskSpec {
-        train_cases: pairs.iter().map(|(i, o)| TaskExample {
-            input:  i.iter().map(|&n| UVal::Number(n as f64)).collect(),
-            expected_output: o.iter().map(|&n| UVal::Number(n as f64)).collect(),
-        }).collect(),
+impl UniversalWorld for TicTacToe {
+    type State = [u8; 9];
+    type Action = usize; 
+
+    fn current_state(&self) -> Self::State {
+        self.board
+    }
+
+    fn step(&mut self, action: Self::Action) -> Result<(), ()> {
+        if action > 8 || self.board[action] != 0 || self.is_terminal() {
+            return Err(()); 
+        }
+        
+        // 🤖 AI moves
+        self.board[action] = 1; 
+        if self.is_terminal() { return Ok(()); }
+
+        // 🧑‍🦱 Ghost Human responds
+        if let Some(m) = self.find_winning_move(2) {
+            self.board[m] = 2; // Always take a win
+        } else if let Some(m) = self.find_winning_move(1) {
+            self.board[m] = 2; // Always block a loss
+        } else {
+            // Pick a completely random spot, forcing the AI to prepare for chaos
+            let empties: Vec<usize> = (0..9).filter(|&i| self.board[i] == 0).collect();
+            if !empties.is_empty() {
+                self.seed ^= self.seed << 13;
+                self.seed ^= self.seed >> 7;
+                self.seed ^= self.seed << 17;
+                let random_idx = (self.seed as usize) % empties.len();
+                self.board[empties[random_idx]] = 2;
+            }
+        }
+
+        Ok(())
+    }
+
+    fn is_terminal(&self) -> bool {
+        self.check_winner() != 0 || !self.board.contains(&0) 
+    }
+
+    /// 🌟 THE FIX: We run 30 chaotic rollouts and return the AVERAGE score!
+    fn evaluate_path(&self, path: &[Self::Action]) -> (f32, u64) {
+        let mut base_sim = self.clone();
+        let mut cost = 0;
+        
+        for &m in path {
+            cost += 1;
+            if base_sim.step(m).is_err() { return (0.01, cost); } // 0.01 = Terrible!
+        }
+        
+        if base_sim.is_terminal() {
+            let w = base_sim.check_winner();
+            let score = if w == 1 { 1.0 } else if w == 2 { 0.1 } else { 0.5 };
+            return (score, cost);
+        }
+
+        let rollouts = 30; // Dream 30 alternate timelines
+        let mut total_score = 0.0;
+
+        for i in 0..rollouts {
+            let mut r_sim = base_sim.clone();
+            r_sim.seed = r_sim.seed.wrapping_add(i as u64).wrapping_mul(1099511628211);
+            
+            while !r_sim.is_terminal() {
+                cost += 1;
+                let empties: Vec<usize> = (0..9).filter(|&idx| r_sim.board[idx] == 0).collect();
+                if empties.is_empty() { break; }
+                
+                // AI plays intelligently during the dream
+                if let Some(w) = r_sim.find_winning_move(1) {
+                    let _ = r_sim.step(w);
+                } else if let Some(b) = r_sim.find_winning_move(2) {
+                    let _ = r_sim.step(b);
+                } else {
+                    r_sim.seed ^= r_sim.seed << 13;
+                    r_sim.seed ^= r_sim.seed >> 7;
+                    let random_idx = (r_sim.seed as usize) % empties.len();
+                    let _ = r_sim.step(empties[random_idx]); 
+                }
+            }
+            
+            let winner = r_sim.check_winner();
+            // Score the timeline: Win = 1.0, Draw = 0.5, Loss = 0.1
+            total_score += if winner == 1 { 1.0 } else if winner == 2 { 0.1 } else { 0.5 };
+        }
+
+        // Return the average probability of winning!
+        let avg_score = total_score / (rollouts as f32);
+        (avg_score, cost)
     }
 }
 
-fn op_name(op: &Op) -> &'static str {
-    match op {
-        Op::Add=>"Add", Op::Sub=>"Sub", Op::Mul=>"Mul", Op::Div=>"Div",
-        Op::Dup=>"Dup", Op::Drop=>"Drop", Op::Swap=>"Swap", Op::Over=>"Over",
-        Op::Halt=>"Halt", Op::Gt=>"Gt", Op::Not=>"Not", Op::Eq=>"Eq",
-        Op::Jmp=>"Jmp", Op::JmpIf=>"JmpIf", Op::Inc=>"Inc", Op::Dec=>"Dec",
-        Op::IsZero=>"IsZero", Op::And=>"And", Op::Or=>"Or", Op::Mod=>"Mod",
-        Op::Store=>"Store", Op::Load=>"Load", Op::Pow=>"Pow", Op::Xor=>"Xor",
-        _ => "?",
+// ─────────────────────────────────────────────────────────────────────────────
+// 3. The Cognitive Policy 🔮
+// ─────────────────────────────────────────────────────────────────────────────
+
+struct TttPolicy {
+    pub brain: Plasticity,
+}
+
+impl CognitivePolicy<[u8; 9], usize> for TttPolicy {
+    fn evaluate(&self, _state: &[u8; 9]) -> f32 { 0.0 }
+
+    fn priors(&self, state: &[u8; 9]) -> Vec<(usize, f32)> {
+        let mut valid_moves = Vec::new();
+        for i in 0..9 {
+            if state[i] == 0 { valid_moves.push(i); }
+        }
+        if valid_moves.is_empty() { return vec![]; }
+        
+        // Hash the TicTacToe board into a memory context
+        let mut hash = 0_u64;
+        for (i, &val) in state.iter().enumerate() {
+            hash ^= (val as u64) << (i * 2);
+        }
+        let ctx = Event::ContextWithState { data: [0; 16], state_hash: hash };
+
+        // Ask the neural network what it thinks!
+        self.brain.get_op_distribution(ctx, &valid_moves)
     }
 }
 
-fn ops_str(ops: &[Op]) -> String {
-    ops.iter().map(op_name).collect::<Vec<_>>().join(", ")
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
-// Printers
-// ─────────────────────────────────────────────────────────────────────────────
-
-fn div() { println!("{}", "─".repeat(68)); }
-fn gap() { println!(); }
-
-struct Problem {
-    label:    &'static str,
-    task:     TaskSpec,
-    sims:     u32,
-    ops:      Vec<Op>,
-    max_len:  usize,
-    expected: &'static str,   // the correct program in human terms
-}
-
-fn run_problem(p: &Problem) {
-    let config = ReasoningConfig {
-        simulations: p.sims,
-        max_program_len: p.max_len,
-        max_ops_per_candidate: p.max_len * 2,
-        action_space: p.ops.clone(),
-        ..Default::default()
-    };
-    let policy = UniversalPolicy::from_task(&p.task);
-    let root   = CoreMind::new();
-
-    let (program, s) = solve_with_stats(&root, &p.task, &config, &policy);
-
-    let crash_pct  = s.crash_count as f64 / s.simulations_run.max(1) as f64 * 100.0;
-    let exit_label = if s.solved_early { "EARLY EXIT ✓" } else { "full budget" };
-    let score_tag  = if s.best_score >= 0.999 { "SOLVED ✓" }
-                     else if s.best_score >= 0.5 { "partial" }
-                     else { "failed" };
-
-    println!("┌─ {:}", p.label);
-    println!("│  expected  : {}", p.expected);
-    println!("│  sims cap  : {}   max prog len: {}   ops: {}",
-        p.sims, p.max_len, p.ops.len());
-    div();
-    println!("  result      : {}  (score {:.4})  [{}]",
-        score_tag, s.best_score, exit_label);
-    println!("  program     : [{}]",
-        program.as_deref().map(ops_str).unwrap_or_else(|| "none".into()));
-    println!("  sims run    : {} / {}", s.simulations_run, p.sims);
-    println!("  time        : {:.3} ms   sims/sec: {:.0}", s.elapsed_ms, s.sims_per_sec);
-    println!("  nodes       : {}   avg depth: {:.2}", s.nodes_allocated, s.avg_selection_depth);
-    println!("  op cycles   : {} total   {:.1}/sim", s.total_op_cycles, s.op_cycles_per_sim);
-    println!("  crashes     : {} ({:.1}%)", s.crash_count, crash_pct);
-    println!("└──────────────────────────────────────────────────────────────────┘");
-    gap();
-}
-
-fn run_inference(label: &str, world: &mut dyn WorldModel, plasticity: &Plasticity) {
-    let cfg = ActiveInferenceConfig { steps: 300, ..Default::default() };
-    let cycles = cfg.action_space.len() * cfg.imagination_rollouts * cfg.rollout_depth;
-    let r = run_active_inference_episode(world, plasticity, &cfg);
-    let learned = ((1.0 - r.average_surprisal / 2.303) * 100.0).clamp(0.0, 100.0);
-    println!("  {:42} | {:5.1}ms | {:5.0} s/s | surp {:.3} | {:.1}%",
-        label, r.elapsed_ms, r.steps_per_sec, r.average_surprisal, learned);
-    let _ = cycles;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Action space shorthands
-// ─────────────────────────────────────────────────────────────────────────────
-
-fn ops_basic() -> Vec<Op> {
-    vec![Op::Dup, Op::Add, Op::Sub, Op::Inc, Op::Dec, Op::Halt]
-}
-fn ops_arith() -> Vec<Op> {
-    vec![Op::Dup, Op::Add, Op::Sub, Op::Mul, Op::Inc, Op::Dec,
-         Op::Over, Op::Swap, Op::Drop, Op::Halt]
-}
-fn ops_full() -> Vec<Op> {
-    vec![Op::Dup, Op::Add, Op::Sub, Op::Mul, Op::Div, Op::Mod,
-         Op::Inc, Op::Dec, Op::Over, Op::Swap, Op::Drop,
-         Op::Gt, Op::Not, Op::IsZero, Op::Eq, Op::Halt]
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Main
+// 4. The Interactive Game Loop! 🎈
 // ─────────────────────────────────────────────────────────────────────────────
 
 fn main() {
-    println!("╔══════════════════════════════════════════════════════════════════════╗");
-    println!("║  SoulGain · Extended MCTS Problem Suite + Inference Benchmark        ║");
-    println!("╚══════════════════════════════════════════════════════════════════════╝");
+    println!("💖✨💖✨💖✨💖✨💖✨💖✨💖✨💖✨💖✨💖✨💖✨💖✨💖✨💖✨💖✨💖");
+    println!("✨     🤖 Robot vs Human: The Grandmaster Match! 🎮         ✨");
+    println!("💖✨💖✨💖✨💖✨💖✨💖✨💖✨💖✨💖✨💖✨💖✨💖✨💖✨💖✨💖✨💖\n");
 
-    // ─── TIER 1: Trivial — should solve in < 100 sims ─────────────────────────
-    println!("\n══ TIER 1 · Trivial  (should solve < 100 sims) ══════════════════════\n");
+    let nanos = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().subsec_nanos() as u64;
+    let mut game = TicTacToe { board: [0; 9], seed: nanos };
+    
+    // We set max_program_len to 1, forcing it to test single moves thoroughly 
+    // rather than looking for optimistic long sequences!
+    let config = ReasoningConfig::<usize> {
+        simulations: 200,              
+        max_depth: 1,                  
+        max_program_len: 1,            
+        max_ops_per_candidate: 1,
+        exploration_constant: 1.41,
+        length_penalty: 0.0,
+        loop_penalty: 0.0,
+        action_space: vec![0, 1, 2, 3, 4, 5, 6, 7, 8], 
+        arena_capacity: 1_000_000,
+    };
+    
+    let policy = TttPolicy;
 
-    run_problem(&Problem {
-        label: "Identity  [5]→[5]",
-        task: task(&[(&[5], &[5]), (&[3], &[3]), (&[7], &[7])]),
-        sims: 500, max_len: 4,
-        ops: ops_basic(),
-        expected: "[Halt]",
-    });
+    game.print_board();
 
-    run_problem(&Problem {
-        label: "Increment  [n]→[n+1]",
-        task: task(&[(&[1], &[2]), (&[4], &[5]), (&[9], &[10])]),
-        sims: 500, max_len: 4,
-        ops: ops_basic(),
-        expected: "[Inc, Halt]",
-    });
+    loop {
+        // 🧑‍🦱 HUMAN TURN
+        print!("Your turn, human! Type a number (0-8): ");
+        io::stdout().flush().unwrap();
+        
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).unwrap();
+        let m: usize = match input.trim().parse() {
+            Ok(num) if num < 9 && game.board[num] == 0 => num,
+            _ => {
+                println!("⚠️  Oops! Invalid move. Please pick an empty spot 0-8.");
+                continue;
+            }
+        };
+        
+        println!("\n🧑‍🦱 You chose spot {}!", m);
+        game.board[m] = 2; // Human is ⭕
+        game.print_board();
 
-    run_problem(&Problem {
-        label: "Decrement  [n]→[n-1]",
-        task: task(&[(&[5], &[4]), (&[3], &[2]), (&[10], &[9])]),
-        sims: 500, max_len: 4,
-        ops: ops_basic(),
-        expected: "[Dec, Halt]",
-    });
+        if game.check_winner() == 2 {
+            println!("🎉 WOW! You outsmarted the Robot! YOU WIN! 🎉\n");
+            break;
+        } else if !game.board.contains(&0) {
+            println!("🤝 It's a draw! The board is full.\n");
+            break;
+        }
 
-    run_problem(&Problem {
-        label: "Add 2  [n]→[n+2]",
-        task: task(&[(&[1], &[3]), (&[5], &[7]), (&[8], &[10])]),
-        sims: 1_000, max_len: 5,
-        ops: ops_basic(),
-        expected: "[Inc, Inc, Halt]",
-    });
+        // 🤖 AI TURN
+        println!("🤖 The Robot is averaging probabilities across timelines...\n");
+        
+        let (best_path_opt, stats) = solve_universal_with_stats(&game, &config, &policy);
 
-    // ─── TIER 2: Easy — should solve in < 1k sims ────────────────────────────
-    println!("══ TIER 2 · Easy  (should solve < 1k sims) ══════════════════════════\n");
+        let ai_move = if let Some(path) = best_path_opt {
+            if !path.is_empty() {
+                path[0] 
+            } else {
+                game.board.iter().position(|&c| c == 0).unwrap() 
+            }
+        } else {
+            game.board.iter().position(|&c| c == 0).unwrap() 
+        };
 
-    run_problem(&Problem {
-        label: "Double  [n]→[2n]",
-        task: task(&[(&[1], &[2]), (&[3], &[6]), (&[5], &[10])]),
-        sims: 2_000, max_len: 5,
-        ops: ops_arith(),
-        expected: "[Dup, Add, Halt]",
-    });
+        println!("✨ The Robot executed {} evaluations in {:.2}ms! ✨", stats.total_op_cycles, stats.elapsed_ms);
+        println!("🤖 The Robot confidently places its ❌ in spot {}!", ai_move);
+        game.board[ai_move] = 1; // AI is ❌
+        game.print_board();
 
-    run_problem(&Problem {
-        label: "Triple  [n]→[3n]",
-        task: task(&[(&[1], &[3]), (&[2], &[6]), (&[4], &[12])]),
-        sims: 4_000, max_len: 6,
-        ops: ops_arith(),
-        expected: "[Dup, Dup, Add, Add, Halt]  or  [Dup, Add, Inc... no — Dup, Over, Add, Add, Halt]",
-    });
-
-    run_problem(&Problem {
-        label: "Square  [n]→[n²]",
-        task: task(&[(&[2], &[4]), (&[3], &[9]), (&[4], &[16])]),
-        sims: 4_000, max_len: 5,
-        ops: ops_arith(),
-        expected: "[Dup, Mul, Halt]",
-    });
-
-    run_problem(&Problem {
-        label: "Add two inputs  [a, b]→[a+b]",
-        task: task(&[(&[2, 3], &[5]), (&[1, 7], &[8]), (&[4, 4], &[8])]),
-        sims: 2_000, max_len: 4,
-        ops: ops_basic(),
-        expected: "[Add, Halt]",
-    });
-
-    run_problem(&Problem {
-        label: "Multiply two inputs  [a, b]→[a*b]",
-        task: task(&[(&[2, 3], &[6]), (&[3, 4], &[12]), (&[5, 2], &[10])]),
-        sims: 2_000, max_len: 4,
-        ops: ops_arith(),
-        expected: "[Mul, Halt]",
-    });
-
-    run_problem(&Problem {
-        label: "Subtract two inputs  [a, b]→[a-b]",
-        task: task(&[(&[5, 3], &[2]), (&[9, 4], &[5]), (&[7, 2], &[5])]),
-        sims: 2_000, max_len: 4,
-        ops: ops_basic(),
-        expected: "[Sub, Halt]",
-    });
-
-    // ─── TIER 3: Medium — needs real search depth ─────────────────────────────
-    println!("══ TIER 3 · Medium  (needs depth, 4k–20k sims) ══════════════════════\n");
-
-    run_problem(&Problem {
-        label: "Double then add 1  [n]→[2n+1]",
-        task: task(&[(&[1], &[3]), (&[2], &[5]), (&[3], &[7]), (&[5], &[11])]),
-        sims: 10_000, max_len: 6,
-        ops: ops_arith(),
-        expected: "[Dup, Add, Inc, Halt]",
-    });
-
-    run_problem(&Problem {
-        label: "Square then add input  [n]→[n²+n]",
-        task: task(&[(&[2], &[6]), (&[3], &[12]), (&[4], &[20])]),
-        sims: 10_000, max_len: 7,
-        ops: ops_arith(),
-        expected: "[Dup, Dup, Mul, Add, Halt]",
-    });
-
-    run_problem(&Problem {
-        label: "Sum of three inputs  [a, b, c]→[a+b+c]",
-        task: task(&[(&[1, 2, 3], &[6]), (&[2, 3, 4], &[9]), (&[5, 5, 5], &[15])]),
-        sims: 4_000, max_len: 5,
-        ops: ops_basic(),
-        expected: "[Add, Add, Halt]",
-    });
-
-    run_problem(&Problem {
-        label: "Difference of squares  [a, b]→[a²-b²]",
-        task: task(&[(&[3, 2], &[5]), (&[4, 1], &[15]), (&[5, 3], &[16])]),
-        sims: 10_000, max_len: 8,
-        ops: ops_full(),
-        expected: "[Over, Over, Mul, Swap, Dup, Mul, Sub, Halt]",
-    });
-
-    run_problem(&Problem {
-        label: "Absolute difference  [a, b]→[|a-b|]",
-        task: task(&[(&[5, 3], &[2]), (&[3, 7], &[4]), (&[9, 9], &[0])]),
-        sims: 10_000, max_len: 8,
-        ops: ops_full(),
-        expected: "[Over, Over, Sub, Swap, Sub, Gt... complex]",
-    });
-
-    // ─── TIER 4: Hard / stress ────────────────────────────────────────────────
-    println!("══ TIER 4 · Hard / Stress ════════════════════════════════════════════\n");
-
-    run_problem(&Problem {
-        label: "Cube  [n]→[n³]  (needs Dup×2 + Mul×2)",
-        task: task(&[(&[2], &[8]), (&[3], &[27]), (&[4], &[64])]),
-        sims: 20_000, max_len: 8,
-        ops: ops_arith(),
-        expected: "[Dup, Dup, Mul, Mul, Halt]",
-    });
-
-    run_problem(&Problem {
-        label: "Min of two inputs  [a, b]→[min(a,b)]",
-        task: task(&[(&[3, 5], &[3]), (&[7, 2], &[2]), (&[4, 4], &[4])]),
-        sims: 20_000, max_len: 10,
-        ops: ops_full(),
-        expected: "[Over, Over, Gt, ... conditional logic]",
-    });
-
-    run_problem(&Problem {
-        label: "Throughput ceiling: 50k sims on trivial task",
-        task: task(&[(&[1], &[1])]),
-        sims: 50_000, max_len: 3,
-        ops: vec![Op::Halt, Op::Inc, Op::Dup],
-        expected: "[Halt]",
-    });
-
-    // ─── INFERENCE: WorldModel plug-in bench ──────────────────────────────────
-    println!("══ INFERENCE: WorldModel plug-in (300 steps each) ═══════════════════\n");
-    println!("  {:42} | {:>7} | {:>8} | {:>9} | {:>6}",
-        "world", "time", "steps/s", "surprisal", "learned");
-    div();
-
-    let plasticity = Plasticity::new();
-
-    let wc = WorldConfig { hidden_states: 8, entropy: 0.2, observation_noise: 0.01 };
-    run_inference("WorldGenerator 8-state (entropy 0.2)",
-        &mut WorldGenerator::new(&wc), &plasticity);
-
-    let wc2 = WorldConfig { hidden_states: 16, entropy: 0.1, observation_noise: 0.0 };
-    run_inference("WorldGenerator 16-state (entropy 0.1)",
-        &mut WorldGenerator::new(&wc2), &plasticity);
-
-    let wc3 = WorldConfig { hidden_states: 32, entropy: 0.3, observation_noise: 0.05 };
-    run_inference("WorldGenerator 32-state (entropy 0.3, noisy)",
-        &mut WorldGenerator::new(&wc3), &plasticity);
-
-    run_inference("BinaryCounter  8-state deterministic",
-        &mut BinaryCounter { state: 0 }, &plasticity);
-
-    run_inference("XorWorld  8-state",
-        &mut XorWorld { state: 0, n: 8 }, &plasticity);
-
-    run_inference("XorWorld  32-state",
-        &mut XorWorld { state: 0, n: 32 }, &plasticity);
-
-    run_inference("StochasticGrid  3×3 (80/10/10 noise)",
-        &mut StochasticGrid { state: 4, seed: 0xDEAD_BEEF }, &plasticity);
-
-    // flip test
-    let mut wg = WorldGenerator::new(&wc);
-    run_inference("WorldGenerator pre-flip",  &mut wg, &plasticity);
-    wg.flip_physics();
-    run_inference("WorldGenerator post-flip (physics inverted)", &mut wg, &plasticity);
-
-    div();
-    println!("\n╔══════════════════════════════════════════════════════════════════════╗");
-    println!("║  Tiers 1–2 prove correctness.  Tier 3 measures search depth.        ║");
-    println!("║  Tier 4 shows throughput ceiling and hard combinatorial limits.      ║");
-    println!("║  Inference table proves WorldModel is fully pluggable.               ║");
-    println!("╚══════════════════════════════════════════════════════════════════════╝\n");
+        if game.check_winner() == 1 {
+            println!("☠️  OH NO! The Robot trapped you! AI WINS! 🤖\n");
+            break;
+        } else if !game.board.contains(&0) {
+            println!("🤝 Phew! It's a draw. You survived!\n");
+            break;
+        }
+    }
 }

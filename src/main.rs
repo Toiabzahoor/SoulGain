@@ -1,64 +1,33 @@
-use std::fs::File;
-use std::io::{self, BufRead, BufReader};
-use std::path::Path;
+mod tictactoe;
 
-use soulgain::eng::EnglishEngine;
+use std::io::{self, Write};
 
-fn main() -> io::Result<()> {
-    let mut engine = EnglishEngine::new();
-    let dialogue_lines = load_dialogue_lines("dialogue.txt")?;
+fn main() {
+    println!("╔══════════════════════════════════════════════════════════════════════╗");
+    println!("║                           SOULGAIN ACTIVE                            ║");
+    println!("╚══════════════════════════════════════════════════════════════════════╝");
 
-    let max_epochs = 50usize;
-    for _ in 0..max_epochs {
-        for line in &dialogue_lines {
-            engine.train_on_text(line);
-        }
-    }
+    loop {
+        println!("\nCHOOSE MODULE TO WORK WITH:");
+        println!("  [1] Tic-Tac-Toe (Human vs AGI)");
+        println!("  [2] Tic-Tac-Toe (AGI Autoplay Training)");
+        println!("  [3] Exit");
+        print!("\n> ");
+        io::stdout().flush().unwrap();
 
-    println!("[System] Chat mode ready. Type your message:");
-    let stdin = io::stdin();
-    for line in stdin.lock().lines() {
-        let input = line?.trim().to_string();
-        if input.is_empty() {
-            println!("Ready.");
+        let mut input = String::new();
+        if io::stdin().read_line(&mut input).is_err() {
             continue;
         }
-        let formatted = format!("USER: {}", input);
-        let response = engine.prompt(&formatted);
-        println!("{}", response);
-    }
 
-    if let Err(err) = engine.save_vocab() {
-        eprintln!("[System] Failed to save vocab: {}", err);
-    }
-
-    Ok(())
-}
-
-fn load_dialogue_lines(path: &str) -> io::Result<Vec<String>> {
-    let path = Path::new(path);
-    let mut lines = Vec::new();
-
-    if path.exists() {
-        let file = File::open(path)?;
-        let reader = BufReader::new(file);
-        for line in reader.lines() {
-            let line = line?;
-            let trimmed = line.trim();
-            if !trimmed.is_empty() {
-                lines.push(trimmed.to_string());
+        match input.trim() {
+            "1" => tictactoe::run_interactive(),
+            "2" => tictactoe::run_autoplay(),
+            "3" | "exit" | "quit" => {
+                println!("Shutting down SoulGain. Goodbye! 💖");
+                break;
             }
+            _ => println!("⚠️  Invalid option. Please choose 1, 2, or 3."),
         }
     }
-
-    if lines.is_empty() {
-        lines.extend(vec![
-            "Hey. Greetings.".to_string(),
-            "Hi. System online.".to_string(),
-            "Who are you? I am SoulGain.".to_string(),
-            "Ready. Ready.".to_string(),
-        ]);
-    }
-
-    Ok(lines)
 }

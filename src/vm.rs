@@ -8,6 +8,20 @@ use crate::memory::MemorySystem;
 use crate::plasticity::{Event, Plasticity, VMError};
 use crate::types::{InternalState, SkillLibrary, UVal};
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Universal Brain Bridge 🧠
+// ─────────────────────────────────────────────────────────────────────────────
+/// A little trait to help generic actions talk to your neural plasticity!
+use crate::plasticity::IntoOpcode;
+
+// 🌟 We must tell the Brain how to read Math Ops!
+impl IntoOpcode for Op {
+    fn into_opcode(self) -> i64 {
+        self as i64
+    }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 pub const SKILL_OPCODE_BASE: i64 = 1000;
 const STATE_WINDOW: usize = 32;
 const CONTEXT_WINDOW: usize = 16;
