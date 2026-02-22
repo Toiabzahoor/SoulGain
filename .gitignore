@@ -11,10 +11,16 @@ Cargo.lock.orig
 .idea/
 *.swp
 *~
-
+/stockfish
 # --- OS Generated Files ---
 .DS_Store
 Thumbs.db
-
+./stockfish_oracle
 # --- Logs ---
-*.log
+*.logstockfish-ubuntu-x86-64-avx2.tar
+stockfish/
+stockfish_oracle
+chess_brain.json
+stockfish_oracle
+stockfish_oracle
+stockfish-ubuntu-x86-64-avx2.tar

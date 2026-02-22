@@ -1,4 +1,5 @@
 mod tictactoe;
+mod chess_game;
 
 use std::io::{self, Write};
 
@@ -9,25 +10,22 @@ fn main() {
 
     loop {
         println!("\nCHOOSE MODULE TO WORK WITH:");
-        println!("  [1] Tic-Tac-Toe (Human vs AGI)");
-        println!("  [2] Tic-Tac-Toe (AGI Autoplay Training)");
-        println!("  [3] Exit");
+        println!("  [1] Tic-Tac-Toe");
+        println!("  [2] Chess (Watch 1 High-Quality Match)");
+        println!("  [3] Chess (Massive Self-Play Evolution)");
+        println!("  [4] Exit");
         print!("\n> ");
         io::stdout().flush().unwrap();
 
         let mut input = String::new();
-        if io::stdin().read_line(&mut input).is_err() {
-            continue;
-        }
+        io::stdin().read_line(&mut input).unwrap();
 
         match input.trim() {
             "1" => tictactoe::run_interactive(),
-            "2" => tictactoe::run_autoplay(),
-            "3" | "exit" | "quit" => {
-                println!("Shutting down SoulGain. Goodbye! 💖");
-                break;
-            }
-            _ => println!("⚠️  Invalid option. Please choose 1, 2, or 3."),
+            "2" => chess_game::run_self_match(),
+            "3" => chess_game::run_autoplay(),
+            "4" => break,
+            _ => println!("⚠️ Invalid option."),
         }
     }
 }

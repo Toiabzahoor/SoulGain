@@ -49,7 +49,7 @@ pub enum Event {
     ContextWithState { data: [u64; 16], state_hash: u64 },
     MemoryRead,
     MemoryWrite,
-    Reward(u8),
+    Reward(i16),
     Surprisal(u16),
     Error(VMError),
 }

@@ -277,7 +277,7 @@ impl Trainer {
                     // Give small rewards for ANY progress
                     self.vm
                         .plasticity
-                        .observe(Event::Reward((fitness * 100.0) as u8));
+                        .observe(Event::Reward((fitness * 100.0) as i16));
                 }
 
                 // --- SUCCESS & PRUNING BLOCK ---

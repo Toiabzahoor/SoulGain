@@ -1,0 +1,1 @@
+a2a3 a7a5 b2b3 a5a4 c2c3 a4b3 d2d3 b3b2 e2e3 b2a1q f2f3 b7b5 g2g3 b5b4 h2h3 b4a3 c3c4 a3a2 d3d4 a2b1q e3e4 c7c5 f3f4 c5d4 g3g4 d4d3 h3h4 d3d2 c1d2 d7d5 c4c5 d5d4 e4e5 d4d3 f4f5 e7e6 g4g5 e6f5 h4h5 f5f4 c5c6 f4f3 e5e6 f3f2 e1f2 f7f5 g5g6 f5f4 h5h6 f4f3 c6c7 g7h6 e6e7 h6h5 c7d8q 
