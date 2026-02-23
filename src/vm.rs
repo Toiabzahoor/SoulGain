@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 use std::io::{self, Read, Write};
 use std::sync::Arc;
-
+use serde::{Deserialize, Serialize};
 // 🌟 UPDATED IMPORTS to use our new Universal Intuition
 use crate::intuition::{ContextSnapshot, UniversalIntuition, ActionOutcome};
 use crate::logic::{decode_ops_for_validation, logic_of, validate_ops};
@@ -25,7 +25,7 @@ pub const SKILL_OPCODE_BASE: i64 = 1000;
 const STATE_WINDOW: usize = 32;
 const CONTEXT_WINDOW: usize = 16;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(i64)]
 pub enum Op {
     Literal = 0, Add = 1, Sub = 2, Mul = 3, Div = 4, Eq = 5,
