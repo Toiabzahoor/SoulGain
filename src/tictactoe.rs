@@ -5,7 +5,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use soulgain::alphazero::{
     CognitivePolicy, ReasoningConfig, UniversalWorld, solve_universal_with_stats,
 };
-use soulgain::plasticity::{Event, IntoOpcode, Plasticity, VMError};
+use soulgain::plasticity::{Event, Plasticity, VMError};
 
 
 

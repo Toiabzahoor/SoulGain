@@ -1,5 +1,4 @@
 pub mod alphazero;
-pub mod eng;
 pub mod evolution;
 pub mod memory;
 pub mod plasticity;

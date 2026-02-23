@@ -7,21 +7,18 @@ use std::sync::{Arc, RwLock, mpsc};
 use std::thread;
 use std::time::{Duration, Instant};
 
-// 🌟 NEW: The Universal Action Trait!
 // Any module (Math, TicTacToe, etc.) can implement this to talk to the brain.
 pub trait IntoOpcode {
     fn into_opcode(self) -> i64;
 }
-// 🌟 NEW: The Universal Action Trait!
-// Any module (Math, TicTacToe, etc.) can implement this to talk to the brain.
 
-
-// 🌟 Tell the brain how to read basic numbers (like Tic-Tac-Toe spots!)
+// Tell the brain how to read basic numbers (like Tic-Tac-Toe spots!)
 impl IntoOpcode for usize {
     fn into_opcode(self) -> i64 {
         self as i64
     }
 }
+
 // --- CONSTANTS ---
 const A_PLUS: f64 = 0.1;
 const A_MINUS: f64 = 0.12;
@@ -78,13 +75,18 @@ impl PersistentMemory {
                 from: *from, to: *to, weight: *weight,
             })
         }).collect();
-        serde_json::to_writer_pretty(BufWriter::new(file), &entries)?;
+        
+        // 🌟 SWAPPED TO BINCODE FOR LIGHTNING FAST SAVING 🌟
+        bincode::serialize_into(BufWriter::new(file), &entries)
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
         Ok(())
     }
 
     pub fn load_from_file<P: AsRef<Path>>(path: P) -> io::Result<Self> {
         let file = File::open(path)?;
-        let entries: Vec<WeightEntry> = match serde_json::from_reader(BufReader::new(file)) {
+        
+        // 🌟 SWAPPED TO BINCODE FOR INSTANT RECALL 🌟
+        let entries: Vec<WeightEntry> = match bincode::deserialize_from(BufReader::new(file)) {
             Ok(entries) => entries,
             Err(_) => return Ok(Self::new()),
         };
@@ -233,7 +235,6 @@ impl Plasticity {
         let _ = rx.recv();
     }
 
-    // 🌟 Restored for the English Chat Engine!
     pub fn best_next_event(&self, from: Event) -> Option<(Event, f64)> {
         let mem = self.memory.read().ok()?;
         let outgoing = mem.weights.get(&from)?;
@@ -278,7 +279,7 @@ impl Plasticity {
             (dst, confidence)
         })
     }
-    // 🌟 NEW: This is now perfectly generic. It doesn't care what `<A>` is!
+
     pub fn get_op_distribution<A: Copy + IntoOpcode>(&self, context_event: Event, allowed_ops: &[A]) -> Vec<(A, f32)> {
         let mem = match self.memory.read() {
             Ok(guard) => guard,
@@ -291,7 +292,33 @@ impl Plasticity {
         let mut sum = 0.0;
         let temperature = 2.0;
 
-        if let Some(outgoing) = mem.weights.get(&context_event) {
+        // 🌟 NEW: FUZZY HAMMING DISTANCE MATCHING! 🌟
+        // Instead of strict exact hashing, the brain now looks for the 
+        // past memory that most closely physically resembles the current board!
+        let mut best_outgoing = None;
+        let mut min_distance = u32::MAX;
+
+        if let Event::ContextWithState { data: target_data, .. } = context_event {
+            for (key, outgoing) in &mem.weights {
+                if let Event::ContextWithState { data: key_data, .. } = key {
+                    // Count exactly how many structural bits are different between the two universes
+                    let dist: u32 = target_data.iter()
+                        .zip(key_data.iter())
+                        .map(|(a, b)| (a ^ b).count_ones())
+                        .sum();
+
+                    if dist < min_distance {
+                        min_distance = dist;
+                        best_outgoing = Some(outgoing);
+                        if dist == 0 { break; } // Perfect structural match!
+                    }
+                }
+            }
+        } else {
+            best_outgoing = mem.weights.get(&context_event);
+        }
+
+        if let Some(outgoing) = best_outgoing {
             for &op in allowed_ops {
                 let target_op_id = op.into_opcode();
                 let mut max_weight = 0.05;

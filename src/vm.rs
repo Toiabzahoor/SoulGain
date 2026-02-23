@@ -2,7 +2,8 @@ use std::collections::VecDeque;
 use std::io::{self, Read, Write};
 use std::sync::Arc;
 
-use crate::intuition::{ContextSnapshot, IntuitionEngine, SkillOutcome, ValueKind};
+// 🌟 UPDATED IMPORTS to use our new Universal Intuition
+use crate::intuition::{ContextSnapshot, UniversalIntuition, ActionOutcome};
 use crate::logic::{decode_ops_for_validation, logic_of, validate_ops};
 use crate::memory::MemorySystem;
 use crate::plasticity::{Event, Plasticity, VMError};
@@ -11,10 +12,8 @@ use crate::types::{InternalState, SkillLibrary, UVal};
 // ─────────────────────────────────────────────────────────────────────────────
 // Universal Brain Bridge 🧠
 // ─────────────────────────────────────────────────────────────────────────────
-/// A little trait to help generic actions talk to your neural plasticity!
 use crate::plasticity::IntoOpcode;
 
-// 🌟 We must tell the Brain how to read Math Ops!
 impl IntoOpcode for Op {
     fn into_opcode(self) -> i64 {
         self as i64
@@ -29,39 +28,13 @@ const CONTEXT_WINDOW: usize = 16;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(i64)]
 pub enum Op {
-    Literal = 0,
-    Add = 1,
-    Sub = 2,
-    Mul = 3,
-    Div = 4,
-    Eq = 5,
-    Store = 6,
-    Load = 7,
-    Halt = 8,
-    Gt = 9,
-    Not = 10,
-    Jmp = 11,
-    JmpIf = 12,
-    Call = 13,
-    Ret = 14,
-    Intuition = 15,
-    Reward = 16,
-    Evolve = 17,
-    Swap = 18,
-    Dup = 19,
-    Over = 20,
-    Drop = 21,
-    And = 22,
-    Or = 23,
-    Xor = 24,
-    IsZero = 25,
-    Mod = 26,
-    Inc = 27,
-    Dec = 28,
-    Parse = 29,
-    In = 30,
-    Out = 31,
-    Pow = 32,
+    Literal = 0, Add = 1, Sub = 2, Mul = 3, Div = 4, Eq = 5,
+    Store = 6, Load = 7, Halt = 8, Gt = 9, Not = 10,
+    Jmp = 11, JmpIf = 12, Call = 13, Ret = 14, Intuition = 15,
+    Reward = 16, Evolve = 17, Swap = 18, Dup = 19, Over = 20,
+    Drop = 21, And = 22, Or = 23, Xor = 24, IsZero = 25,
+    Mod = 26, Inc = 27, Dec = 28, Parse = 29, In = 30,
+    Out = 31, Pow = 32,
 }
 
 pub const CORE_STACK_SIZE: usize = 64;
@@ -115,39 +88,28 @@ impl CoreMind {
         }
     }
 
-    // [INTEGRATION POINT] 
-    // Calculates a hash of the current "Situation" to query the Plasticity brain.
     pub fn context_hash(&self) -> u64 {
         let mut hash = 1469598103934665603_u64;
-        
-        // Factor 1: The Instruction Pointer (Location in logic)
         hash ^= self.ip as u64;
         hash = hash.wrapping_mul(1099511628211);
 
-        // Factor 2: The Stack Top (Data Type Context)
         if let Some(top) = self.stack.get(self.stack_len.saturating_sub(1)) {
-             // We hash the 'Kind' of value to allow generalization across specific numbers
              let type_id = match top {
-                 UVal::Number(_) => 1,
-                 UVal::Bool(_) => 2,
-                 UVal::String(_) => 3,
-                 UVal::Object(_) => 4,
+                 UVal::Number(_) => 1, UVal::Bool(_) => 2,
+                 UVal::String(_) => 3, UVal::Object(_) => 4,
                  UVal::Nil => 0,
              };
              hash ^= type_id;
              hash = hash.wrapping_mul(1099511628211);
         }
 
-        // Factor 3: The Previous Stack Item (Deeper Context)
         if let Some(second) = self.stack.get(self.stack_len.saturating_sub(2)) {
              let type_id = match second {
-                 UVal::Number(_) => 1,
-                 UVal::Bool(_) => 2,
-                 UVal::String(_) => 3,
-                 UVal::Object(_) => 4,
+                 UVal::Number(_) => 1, UVal::Bool(_) => 2,
+                 UVal::String(_) => 3, UVal::Object(_) => 4,
                  UVal::Nil => 0,
              };
-             hash ^= type_id << 32; // Shift to mix differently
+             hash ^= type_id << 32; 
              hash = hash.wrapping_mul(1099511628211);
         }
 
@@ -159,9 +121,7 @@ impl CoreMind {
             self.reading_literal = false;
             let pushed = self.push(UVal::Number(op as i64 as f64));
             self.ip = self.ip.saturating_add(1);
-            if matches!(pushed, StepStatus::Crash) {
-                self.crashed = true;
-            }
+            if matches!(pushed, StepStatus::Crash) { self.crashed = true; }
             return pushed;
         }
 
@@ -171,25 +131,16 @@ impl CoreMind {
             return StepStatus::Continue;
         }
 
-        if self.halted {
-            return StepStatus::Halt;
-        }
-        if self.crashed {
-            return StepStatus::Crash;
-        }
+        if self.halted { return StepStatus::Halt; }
+        if self.crashed { return StepStatus::Crash; }
 
         let mut next_ip = self.ip.saturating_add(1);
         let status = match op {
-            Op::Literal => {
-                self.reading_literal = true;
-                StepStatus::Continue
-            }
+            Op::Literal => { self.reading_literal = true; StepStatus::Continue }
             Op::Add => self.binary_numeric(|a, b| a + b),
             Op::Sub => self.binary_numeric(|a, b| a - b),
             Op::Mul => self.binary_numeric(|a, b| a * b),
-            Op::Div => {
-                self.binary_numeric_checked(|a, b| if b == 0.0 { None } else { Some(a / b) })
-            }
+            Op::Div => self.binary_numeric_checked(|a, b| if b == 0.0 { None } else { Some(a / b) }),
             Op::Eq => self.binary_cmp(|a, b| a == b),
             Op::Gt => self.binary_cmp(|a, b| a > b),
             Op::Not => self.not(),
@@ -197,9 +148,7 @@ impl CoreMind {
             Op::Or => self.binary_truthy(|a, b| a || b),
             Op::Xor => self.binary_truthy(|a, b| a ^ b),
             Op::IsZero => self.is_zero(),
-            Op::Mod => {
-                self.binary_numeric_checked(|a, b| if b == 0.0 { None } else { Some(a % b) })
-            }
+            Op::Mod => self.binary_numeric_checked(|a, b| if b == 0.0 { None } else { Some(a % b) }),
             Op::Dup => self.dup(),
             Op::Drop => self.drop_top(),
             Op::Swap => self.swap(),
@@ -208,95 +157,55 @@ impl CoreMind {
             Op::Dec => self.unary_numeric(|n| n - 1.0),
             Op::Store => self.store(),
             Op::Load => self.load(),
-            Op::Jmp => {
-                self.reading_target = true;
-                StepStatus::Continue
-            }
+            Op::Jmp => { self.reading_target = true; StepStatus::Continue }
             Op::JmpIf => {
                 let cond = match self.pop() {
                     Some(val) => val.is_truthy(),
                     None => return StepStatus::Crash,
                 };
-                if cond {
-                    self.reading_target = true;
-                } else {
-                    next_ip = self.ip.saturating_add(2);
-                }
+                if cond { self.reading_target = true; } else { next_ip = self.ip.saturating_add(2); }
                 StepStatus::Continue
             }
             Op::Call => StepStatus::Crash,
-            Op::Halt => {
-                self.halted = true;
-                StepStatus::Halt
-            }
-            // For other ops like Call/Ret which are not supported in CoreMind minimal VM:
+            Op::Halt => { self.halted = true; StepStatus::Halt }
             _ => StepStatus::Crash,
         };
 
-        if !self.reading_literal && !self.reading_target {
-            self.ip = next_ip;
-        }
+        if !self.reading_literal && !self.reading_target { self.ip = next_ip; }
+        if self.reading_literal || self.reading_target { self.ip = self.ip.saturating_add(1); }
+        if matches!(status, StepStatus::Crash) { self.crashed = true; }
         
-        if self.reading_literal || self.reading_target {
-             self.ip = self.ip.saturating_add(1);
-        }
-
-        if matches!(status, StepStatus::Crash) {
-            self.crashed = true;
-        }
         status
     }
 
-    pub fn is_halted(&self) -> bool {
-        self.halted
-    }
-
-    pub fn ip(&self) -> usize {
-        self.ip
-    }
+    pub fn is_halted(&self) -> bool { self.halted }
+    pub fn ip(&self) -> usize { self.ip }
 
     pub fn state_hash(&self) -> u64 {
         let mut hash = 1469598103934665603_u64;
-        hash ^= self.ip as u64;
-        hash = hash.wrapping_mul(1099511628211);
-        hash ^= self.stack_len as u64;
-        hash = hash.wrapping_mul(1099511628211);
+        hash ^= self.ip as u64; hash = hash.wrapping_mul(1099511628211);
+        hash ^= self.stack_len as u64; hash = hash.wrapping_mul(1099511628211);
 
-        for value in &self.stack[..self.stack_len] {
-            mix_uval(&mut hash, value);
-        }
-        for value in &self.memory {
-            mix_uval(&mut hash, value);
-        }
-        hash ^= self.halted as u64;
-        hash = hash.wrapping_mul(1099511628211);
-        hash ^= self.crashed as u64;
-        hash = hash.wrapping_mul(1099511628211);
-        hash ^= self.reading_literal as u64;
-        hash = hash.wrapping_mul(1099511628211);
+        for value in &self.stack[..self.stack_len] { mix_uval(&mut hash, value); }
+        for value in &self.memory { mix_uval(&mut hash, value); }
+        
+        hash ^= self.halted as u64; hash = hash.wrapping_mul(1099511628211);
+        hash ^= self.crashed as u64; hash = hash.wrapping_mul(1099511628211);
+        hash ^= self.reading_literal as u64; hash = hash.wrapping_mul(1099511628211);
         hash ^= self.reading_target as u64; 
         hash
     }
 
-    pub fn extract_output(&self) -> Vec<UVal> {
-        self.stack[..self.stack_len].to_vec()
-    }
+    pub fn extract_output(&self) -> Vec<UVal> { self.stack[..self.stack_len].to_vec() }
 
     fn pop(&mut self) -> Option<UVal> {
-        if self.stack_len == 0 {
-            return None;
-        }
+        if self.stack_len == 0 { return None; }
         self.stack_len -= 1;
-        Some(std::mem::replace(
-            &mut self.stack[self.stack_len],
-            UVal::Nil,
-        ))
+        Some(std::mem::replace(&mut self.stack[self.stack_len], UVal::Nil))
     }
 
     fn push(&mut self, value: UVal) -> StepStatus {
-        if self.stack_len >= CORE_STACK_SIZE {
-            return StepStatus::Crash;
-        }
+        if self.stack_len >= CORE_STACK_SIZE { return StepStatus::Crash; }
         self.stack[self.stack_len] = value;
         self.stack_len += 1;
         StepStatus::Continue
@@ -307,122 +216,69 @@ impl CoreMind {
     }
 
     fn binary_numeric_checked(&mut self, op: impl FnOnce(f64, f64) -> Option<f64>) -> StepStatus {
-        let rhs = match self.pop() {
-            Some(UVal::Number(n)) => n,
-            _ => return StepStatus::Crash,
-        };
-        let lhs = match self.pop() {
-            Some(UVal::Number(n)) => n,
-            _ => return StepStatus::Crash,
-        };
-        match op(lhs, rhs) {
-            Some(value) => self.push(UVal::Number(value)),
-            None => StepStatus::Crash,
-        }
+        let rhs = match self.pop() { Some(UVal::Number(n)) => n, _ => return StepStatus::Crash };
+        let lhs = match self.pop() { Some(UVal::Number(n)) => n, _ => return StepStatus::Crash };
+        match op(lhs, rhs) { Some(value) => self.push(UVal::Number(value)), None => StepStatus::Crash }
     }
 
     fn unary_numeric(&mut self, op: impl FnOnce(f64) -> f64) -> StepStatus {
-        let value = match self.pop() {
-            Some(UVal::Number(n)) => n,
-            _ => return StepStatus::Crash,
-        };
+        let value = match self.pop() { Some(UVal::Number(n)) => n, _ => return StepStatus::Crash };
         self.push(UVal::Number(op(value)))
     }
 
     fn binary_cmp(&mut self, cmp: impl FnOnce(f64, f64) -> bool) -> StepStatus {
-        let rhs = match self.pop() {
-            Some(UVal::Number(n)) => n,
-            _ => return StepStatus::Crash,
-        };
-        let lhs = match self.pop() {
-            Some(UVal::Number(n)) => n,
-            _ => return StepStatus::Crash,
-        };
+        let rhs = match self.pop() { Some(UVal::Number(n)) => n, _ => return StepStatus::Crash };
+        let lhs = match self.pop() { Some(UVal::Number(n)) => n, _ => return StepStatus::Crash };
         self.push(UVal::Bool(cmp(lhs, rhs)))
     }
 
     fn not(&mut self) -> StepStatus {
-        let value = match self.pop() {
-            Some(v) => !v.is_truthy(),
-            None => return StepStatus::Crash,
-        };
+        let value = match self.pop() { Some(v) => !v.is_truthy(), None => return StepStatus::Crash };
         self.push(UVal::Bool(value))
     }
 
     fn binary_truthy(&mut self, op: impl FnOnce(bool, bool) -> bool) -> StepStatus {
-        let rhs = match self.pop() {
-            Some(value) => value.is_truthy(),
-            None => return StepStatus::Crash,
-        };
-        let lhs = match self.pop() {
-            Some(value) => value.is_truthy(),
-            None => return StepStatus::Crash,
-        };
+        let rhs = match self.pop() { Some(value) => value.is_truthy(), None => return StepStatus::Crash };
+        let lhs = match self.pop() { Some(value) => value.is_truthy(), None => return StepStatus::Crash };
         self.push(UVal::Bool(op(lhs, rhs)))
     }
 
     fn is_zero(&mut self) -> StepStatus {
-        let value = match self.pop() {
-            Some(UVal::Number(n)) => n == 0.0,
-            _ => return StepStatus::Crash,
-        };
+        let value = match self.pop() { Some(UVal::Number(n)) => n == 0.0, _ => return StepStatus::Crash };
         self.push(UVal::Bool(value))
     }
 
     fn dup(&mut self) -> StepStatus {
-        if self.stack_len == 0 {
-            return StepStatus::Crash;
-        }
+        if self.stack_len == 0 { return StepStatus::Crash; }
         self.push(self.stack[self.stack_len - 1].clone())
     }
 
     fn drop_top(&mut self) -> StepStatus {
-        if self.pop().is_some() {
-            StepStatus::Continue
-        } else {
-            StepStatus::Crash
-        }
+        if self.pop().is_some() { StepStatus::Continue } else { StepStatus::Crash }
     }
 
     fn swap(&mut self) -> StepStatus {
-        if self.stack_len < 2 {
-            return StepStatus::Crash;
-        }
+        if self.stack_len < 2 { return StepStatus::Crash; }
         self.stack.swap(self.stack_len - 1, self.stack_len - 2);
         StepStatus::Continue
     }
 
     fn over(&mut self) -> StepStatus {
-        if self.stack_len < 2 {
-            return StepStatus::Crash;
-        }
+        if self.stack_len < 2 { return StepStatus::Crash; }
         self.push(self.stack[self.stack_len - 2].clone())
     }
 
     fn store(&mut self) -> StepStatus {
-        let value = match self.pop() {
-            Some(value) => value,
-            None => return StepStatus::Crash,
-        };
-        let index = match self.pop() {
-            Some(UVal::Number(n)) if n >= 0.0 && n.fract() == 0.0 => n as usize,
-            _ => return StepStatus::Crash,
-        };
-        if index >= CORE_MEMORY_SIZE {
-            return StepStatus::Crash;
-        }
+        let value = match self.pop() { Some(value) => value, None => return StepStatus::Crash };
+        let index = match self.pop() { Some(UVal::Number(n)) if n >= 0.0 && n.fract() == 0.0 => n as usize, _ => return StepStatus::Crash };
+        if index >= CORE_MEMORY_SIZE { return StepStatus::Crash; }
         self.memory[index] = value;
         StepStatus::Continue
     }
 
     fn load(&mut self) -> StepStatus {
-        let index = match self.pop() {
-            Some(UVal::Number(n)) if n >= 0.0 && n.fract() == 0.0 => n as usize,
-            _ => return StepStatus::Crash,
-        };
-        if index >= CORE_MEMORY_SIZE {
-            return StepStatus::Crash;
-        }
+        let index = match self.pop() { Some(UVal::Number(n)) if n >= 0.0 && n.fract() == 0.0 => n as usize, _ => return StepStatus::Crash };
+        if index >= CORE_MEMORY_SIZE { return StepStatus::Crash; }
         self.push(self.memory[index].clone())
     }
 }
@@ -430,44 +286,15 @@ impl CoreMind {
 fn mix_uval(hash: &mut u64, value: &UVal) {
     const PRIME: u64 = 1099511628211;
     match value {
-        UVal::Nil => {
-            *hash ^= 0;
-            *hash = hash.wrapping_mul(PRIME);
-        }
-        UVal::Bool(b) => {
-            *hash ^= 1;
-            *hash = hash.wrapping_mul(PRIME);
-            *hash ^= *b as u64;
-            *hash = hash.wrapping_mul(PRIME);
-        }
-        UVal::Number(n) => {
-            *hash ^= 2;
-            *hash = hash.wrapping_mul(PRIME);
-            *hash ^= n.to_bits();
-            *hash = hash.wrapping_mul(PRIME);
-        }
-        UVal::String(text) => {
-            *hash ^= 3;
-            *hash = hash.wrapping_mul(PRIME);
-            for b in text.as_bytes() {
-                *hash ^= *b as u64;
-                *hash = hash.wrapping_mul(PRIME);
-            }
-        }
-        UVal::Object(map) => {
-            *hash ^= 4;
-            *hash = hash.wrapping_mul(PRIME);
-            *hash ^= map.len() as u64;
-            *hash = hash.wrapping_mul(PRIME);
-        }
+        UVal::Nil => { *hash ^= 0; *hash = hash.wrapping_mul(PRIME); }
+        UVal::Bool(b) => { *hash ^= 1; *hash = hash.wrapping_mul(PRIME); *hash ^= *b as u64; *hash = hash.wrapping_mul(PRIME); }
+        UVal::Number(n) => { *hash ^= 2; *hash = hash.wrapping_mul(PRIME); *hash ^= n.to_bits(); *hash = hash.wrapping_mul(PRIME); }
+        UVal::String(text) => { *hash ^= 3; *hash = hash.wrapping_mul(PRIME); for b in text.as_bytes() { *hash ^= *b as u64; *hash = hash.wrapping_mul(PRIME); } }
+        UVal::Object(map) => { *hash ^= 4; *hash = hash.wrapping_mul(PRIME); *hash ^= map.len() as u64; *hash = hash.wrapping_mul(PRIME); }
     }
 }
 
-impl Default for CoreMind {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+impl Default for CoreMind { fn default() -> Self { Self::new() } }
 
 pub struct SoulGainAgent {
     pub mind: CoreMind,
@@ -477,11 +304,7 @@ pub struct SoulGainAgent {
 
 impl SoulGainAgent {
     pub fn new() -> Self {
-        Self {
-            mind: CoreMind::new(),
-            skills: SkillLibrary::new(),
-            plasticity: Plasticity::new(),
-        }
+        Self { mind: CoreMind::new(), skills: SkillLibrary::new(), plasticity: Plasticity::new() }
     }
 
     pub fn execute_program(&mut self, program: &[Op], input: &[UVal]) -> Option<Vec<UVal>> {
@@ -494,67 +317,28 @@ impl SoulGainAgent {
                 StepStatus::Crash => return None,
             }
         }
-        if self.mind.is_halted() {
-            Some(self.mind.extract_output())
-        } else {
-            None
-        }
+        if self.mind.is_halted() { Some(self.mind.extract_output()) } else { None }
     }
 }
 
-impl Default for SoulGainAgent {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+impl Default for SoulGainAgent { fn default() -> Self { Self::new() } }
 
 impl Op {
     pub fn from_i64(value: i64) -> Option<Self> {
         match value {
-            0 => Some(Op::Literal),
-            1 => Some(Op::Add),
-            2 => Some(Op::Sub),
-            3 => Some(Op::Mul),
-            4 => Some(Op::Div),
-            5 => Some(Op::Eq),
-            6 => Some(Op::Store),
-            7 => Some(Op::Load),
-            8 => Some(Op::Halt),
-            9 => Some(Op::Gt),
-            10 => Some(Op::Not),
-            11 => Some(Op::Jmp),
-            12 => Some(Op::JmpIf),
-            13 => Some(Op::Call),
-            14 => Some(Op::Ret),
-            15 => Some(Op::Intuition),
-            16 => Some(Op::Reward),
-            17 => Some(Op::Evolve),
-            18 => Some(Op::Swap),
-            19 => Some(Op::Dup),
-            20 => Some(Op::Over),
-            21 => Some(Op::Drop),
-            22 => Some(Op::And),
-            23 => Some(Op::Or),
-            24 => Some(Op::Xor),
-            25 => Some(Op::IsZero),
-            26 => Some(Op::Mod),
-            27 => Some(Op::Inc),
-            28 => Some(Op::Dec),
-            29 => Some(Op::Parse),
-            30 => Some(Op::In),
-            31 => Some(Op::Out),
-            32 => Some(Op::Pow),
-            _ => None,
+            0 => Some(Op::Literal), 1 => Some(Op::Add), 2 => Some(Op::Sub), 3 => Some(Op::Mul),
+            4 => Some(Op::Div), 5 => Some(Op::Eq), 6 => Some(Op::Store), 7 => Some(Op::Load),
+            8 => Some(Op::Halt), 9 => Some(Op::Gt), 10 => Some(Op::Not), 11 => Some(Op::Jmp),
+            12 => Some(Op::JmpIf), 13 => Some(Op::Call), 14 => Some(Op::Ret), 15 => Some(Op::Intuition),
+            16 => Some(Op::Reward), 17 => Some(Op::Evolve), 18 => Some(Op::Swap), 19 => Some(Op::Dup),
+            20 => Some(Op::Over), 21 => Some(Op::Drop), 22 => Some(Op::And), 23 => Some(Op::Or),
+            24 => Some(Op::Xor), 25 => Some(Op::IsZero), 26 => Some(Op::Mod), 27 => Some(Op::Inc),
+            28 => Some(Op::Dec), 29 => Some(Op::Parse), 30 => Some(Op::In), 31 => Some(Op::Out),
+            32 => Some(Op::Pow), _ => None,
         }
     }
-
-    pub fn as_i64(self) -> i64 {
-        self as i64
-    }
-
-    pub fn as_f64(self) -> f64 {
-        self as i64 as f64
-    }
+    pub fn as_i64(self) -> i64 { self as i64 }
+    pub fn as_f64(self) -> f64 { self as i64 as f64 }
 }
 
 pub struct SoulGainVM {
@@ -567,7 +351,7 @@ pub struct SoulGainVM {
     pub plasticity: Plasticity,
     pub last_event: Option<Event>,
     pub skills: SkillLibrary,
-    pub intuition: IntuitionEngine,
+    pub intuition: UniversalIntuition, // 🌟 UPDATED to use UniversalIntuition
     trace: Vec<Event>,
     recent_opcodes: VecDeque<i64>,
     tick: u64,
@@ -591,16 +375,15 @@ struct ProgramFrame {
     skill_invocation: Option<SkillInvocation>,
 }
 
+// 🌟 UPDATED to match Universal Intuition's state requirements
 #[derive(Debug, Clone)]
 struct SkillInvocation {
     skill_id: i64,
     reward_before: f64,
     errors_before: u64,
-    task_tag: Option<u64>,
-    context_top_types: [Option<ValueKind>; 3],
-    data_hash: u64,
-    feature_hash: u64,
-    stack_hash: u64,
+    domain_tag: Option<u64>,
+    features: [u64; 16],
+    context_hash: u64,
 }
 
 impl SoulGainVM {
@@ -615,7 +398,7 @@ impl SoulGainVM {
             plasticity: Plasticity::new(),
             last_event: None,
             skills: SkillLibrary::new(),
-            intuition: IntuitionEngine::default(),
+            intuition: UniversalIntuition::new(), // 🌟 UPDATED
             trace: Vec::with_capacity(512),
             recent_opcodes: VecDeque::with_capacity(8),
             tick: 0,
@@ -633,61 +416,41 @@ impl SoulGainVM {
         }
     }
 
-    pub fn set_task_tag(&mut self, task_tag: Option<u64>) {
-        self.current_task_tag = task_tag;
-    }
+    pub fn set_task_tag(&mut self, task_tag: Option<u64>) { self.current_task_tag = task_tag; }
 
     #[inline(always)]
     fn decode_opcode(raw: f64) -> Result<i64, VMError> {
-        if !raw.is_finite() {
-            return Err(VMError::InvalidOpcode(-1));
-        }
+        if !raw.is_finite() { return Err(VMError::InvalidOpcode(-1)); }
         let rounded = raw.round();
-        if (rounded - raw).abs() > 1e-9 {
-            return Err(VMError::InvalidOpcode(rounded as i64));
-        }
+        if (rounded - raw).abs() > 1e-9 { return Err(VMError::InvalidOpcode(rounded as i64)); }
         Ok(rounded as i64)
     }
 
     fn push_with_limit<T>(deque: &mut VecDeque<T>, value: T, limit: usize) {
-        if deque.len() == limit {
-            deque.pop_front();
-        }
+        if deque.len() == limit { deque.pop_front(); }
         deque.push_back(value);
     }
 
     pub fn record_prediction_confidence(&mut self, confidence: f64) {
-        Self::push_with_limit(
-            &mut self.prediction_confidence_history,
-            confidence.clamp(0.0, 1.0),
-            STATE_WINDOW,
-        );
+        Self::push_with_limit(&mut self.prediction_confidence_history, confidence.clamp(0.0, 1.0), STATE_WINDOW);
     }
 
     fn record_stack_depth(&mut self) {
-        Self::push_with_limit(
-            &mut self.recent_stack_depths,
-            self.stack.len(),
-            STATE_WINDOW,
-        );
+        Self::push_with_limit(&mut self.recent_stack_depths, self.stack.len(), STATE_WINDOW);
     }
 
     fn record_context_token(&mut self, token: u64) {
         Self::push_with_limit(&mut self.recent_context, token, CONTEXT_WINDOW);
         if self.recent_context.len() == CONTEXT_WINDOW {
             let mut data = [0u64; CONTEXT_WINDOW];
-            for (idx, value) in self.recent_context.iter().enumerate() {
-                data[idx] = *value;
-            }
+            for (idx, value) in self.recent_context.iter().enumerate() { data[idx] = *value; }
             let state_hash = self.calculate_internal_state().hash();
             self.record_event(Event::ContextWithState { data, state_hash });
         }
     }
 
     pub fn calculate_internal_state(&self) -> InternalState {
-        if let Some(forced) = self.state_override {
-            return forced;
-        }
+        if let Some(forced) = self.state_override { return forced; }
         let successes = self.recent_successes.len() as f64;
         let errors = self.recent_errors.len() as f64;
         let total = (successes + errors).max(1.0);
@@ -700,29 +463,22 @@ impl SoulGainVM {
         for depth in &self.recent_stack_depths {
             if let Some(prev) = prev_depth {
                 total_depth += 1;
-                if *depth != prev {
-                    changes += 1;
-                }
+                if *depth != prev { changes += 1; }
             }
             prev_depth = Some(*depth);
         }
-        let stack_activity = if total_depth > 0 {
-            changes as f64 / total_depth as f64
-        } else {
-            0.0
-        };
+        let stack_activity = if total_depth > 0 { changes as f64 / total_depth as f64 } else { 0.0 };
 
         let avg_confidence = if self.prediction_confidence_history.is_empty() {
             0.5
         } else {
-            self.prediction_confidence_history.iter().sum::<f64>()
-                / self.prediction_confidence_history.len() as f64
+            self.prediction_confidence_history.iter().sum::<f64>() / self.prediction_confidence_history.len() as f64
         };
 
         InternalState {
             entropy: error_rate.clamp(0.0, 1.0),
             momentum: (success_rate * stack_activity).clamp(0.0, 1.0),
-            coherence: self.intuition.latest_match_score().clamp(0.0, 1.0),
+            coherence: self.intuition.last_match_score.clamp(0.0, 1.0), // 🌟 UPDATED property access
             plasticity: (1.0 - avg_confidence).clamp(0.0, 1.0),
         }
     }
@@ -747,39 +503,56 @@ impl SoulGainVM {
         self.stagnation_pressure
     }
 
-    pub fn stagnation_pressure(&self) -> f64 {
-        self.stagnation_pressure
-    }
+    pub fn stagnation_pressure(&self) -> f64 { self.stagnation_pressure }
+    pub fn increment_tick(&mut self) { self.tick = self.tick.saturating_add(1); }
 
-    pub fn increment_tick(&mut self) {
-        self.tick = self.tick.saturating_add(1);
+    // 🌟 NEW HELPER: Translates the VM's state into the Universal 16-feature array!
+    fn vm_to_features(&self) -> [u64; 16] {
+        let mut f = [0u64; 16];
+        f[0] = self.ip as u64;
+        f[1] = self.stack.len() as u64;
+        
+        // Encode the types of the top 3 items on the stack
+        for i in 0..3 {
+            if self.stack.len() > i {
+                let val = &self.stack[self.stack.len() - 1 - i];
+                let type_id = match val {
+                    UVal::Number(_) => 1, UVal::Bool(_) => 2,
+                    UVal::String(_) => 3, UVal::Object(_) => 4,
+                    UVal::Nil => 0,
+                };
+                f[2 + i] = type_id;
+            }
+        }
+        
+        // Encode the last 4 opcodes executed
+        for (i, &op) in self.recent_opcodes.iter().take(4).enumerate() {
+            f[5 + i] = op as u64;
+        }
+        
+        f[9] = self.error_count;
+        f
     }
 
     pub fn build_context_snapshot(&self) -> ContextSnapshot {
-        self.intuition
-            .build_context(&self.stack, &self.recent_opcodes, self.current_task_tag)
+        let features = self.vm_to_features();
+        self.intuition.build_context(features, self.current_task_tag)
     }
 
     pub fn select_skill_for_context(&mut self) -> Option<i64> {
         let candidates: Vec<i64> = self.skills.macros.keys().copied().collect();
         let ctx = self.build_context_snapshot();
-        self.intuition.select_skill(&ctx, &candidates, self.tick)
+        self.intuition.select_action(&ctx, &candidates, self.tick) // 🌟 Renamed to select_action
     }
 
-    pub fn invoke_skill(&mut self, skill_id: i64) {
-        self.execute_skill(skill_id);
-    }
+    pub fn invoke_skill(&mut self, skill_id: i64) { self.execute_skill(skill_id); }
 
     pub fn record_event(&mut self, event: Event) {
         self.last_event = Some(event);
         self.trace.push(event);
         match event {
-            Event::Reward(_) | Event::Opcode { .. } => {
-                Self::push_with_limit(&mut self.recent_successes, 1, STATE_WINDOW);
-            }
-            Event::Error(_) => {
-                Self::push_with_limit(&mut self.recent_errors, 1, STATE_WINDOW);
-            }
+            Event::Reward(_) | Event::Opcode { .. } => { Self::push_with_limit(&mut self.recent_successes, 1, STATE_WINDOW); }
+            Event::Error(_) => { Self::push_with_limit(&mut self.recent_errors, 1, STATE_WINDOW); }
             _ => {}
         }
         self.record_stack_depth();
@@ -792,9 +565,7 @@ impl SoulGainVM {
     }
 
     fn flush_trace(&mut self) {
-        if self.trace.is_empty() {
-            return;
-        }
+        if self.trace.is_empty() { return; }
         let batch = std::mem::take(&mut self.trace);
         self.plasticity.observe_batch(batch);
     }
@@ -804,19 +575,17 @@ impl SoulGainVM {
             if let Some(invocation) = frame.skill_invocation {
                 let success = self.error_count == invocation.errors_before;
                 let reward_delta = self.total_reward - invocation.reward_before;
-                self.intuition
-                    .settle_pending_credits(self.tick, self.total_reward);
+                
+                // 🌟 UPDATED to use ActionOutcome
                 self.intuition.update_after_execution(
                     invocation.skill_id,
-                    SkillOutcome {
+                    ActionOutcome {
                         success,
                         reward_delta,
                         used_tick: self.tick,
-                        task_tag: invocation.task_tag,
-                        context_top_types: invocation.context_top_types,
-                        data_hash: invocation.data_hash,
-                        feature_hash: invocation.feature_hash,
-                        stack_hash: invocation.stack_hash,
+                        domain_tag: invocation.domain_tag,
+                        features: invocation.features,
+                        context_hash: invocation.context_hash,
                     },
                 );
             }
@@ -832,9 +601,7 @@ impl SoulGainVM {
         let mut cycles = 0usize;
         while cycles < max_cycles {
             if self.ip >= self.program.len() {
-                if self.restore_program() {
-                    continue;
-                }
+                if self.restore_program() { continue; }
                 self.flush_trace();
                 break;
             }
@@ -845,17 +612,11 @@ impl SoulGainVM {
 
             let opcode = match Self::decode_opcode(raw) {
                 Ok(op) => op,
-                Err(e) => {
-                    self.record_error(e);
-                    continue;
-                }
+                Err(e) => { self.record_error(e); continue; }
             };
 
             if opcode >= SKILL_OPCODE_BASE {
-                let opcode_event = Event::Opcode {
-                    opcode,
-                    stack_depth: self.stack.len(),
-                };
+                let opcode_event = Event::Opcode { opcode, stack_depth: self.stack.len() };
                 self.record_event(opcode_event);
                 self.push_recent_opcode(opcode);
                 self.execute_skill(opcode);
@@ -863,11 +624,7 @@ impl SoulGainVM {
             }
 
             match Op::from_i64(opcode) {
-                Some(op) => {
-                    if !self.execute_opcode(op) {
-                        break;
-                    }
-                }
+                Some(op) => { if !self.execute_opcode(op) { break; } }
                 None => self.record_error(VMError::InvalidOpcode(opcode)),
             }
         }
@@ -877,9 +634,7 @@ impl SoulGainVM {
         let mut cycles = 0usize;
         while cycles < max_cycles {
             if self.ip >= self.program.len() {
-                if self.restore_program() {
-                    continue;
-                }
+                if self.restore_program() { continue; }
                 self.flush_trace();
                 return None;
             }
@@ -890,17 +645,11 @@ impl SoulGainVM {
 
             let opcode = match Self::decode_opcode(raw) {
                 Ok(op) => op,
-                Err(e) => {
-                    self.record_error(e);
-                    continue;
-                }
+                Err(e) => { self.record_error(e); continue; }
             };
 
             if opcode >= SKILL_OPCODE_BASE {
-                let opcode_event = Event::Opcode {
-                    opcode,
-                    stack_depth: self.stack.len(),
-                };
+                let opcode_event = Event::Opcode { opcode, stack_depth: self.stack.len() };
                 self.record_event(opcode_event);
                 self.push_recent_opcode(opcode);
                 self.execute_skill(opcode);
@@ -910,34 +659,20 @@ impl SoulGainVM {
             match Op::from_i64(opcode) {
                 Some(op) => match op {
                     Op::Out => {
-                        let opcode_event = Event::Opcode {
-                            opcode: op.as_i64(),
-                            stack_depth: self.stack.len(),
-                        };
+                        let opcode_event = Event::Opcode { opcode: op.as_i64(), stack_depth: self.stack.len() };
                         self.record_event(opcode_event);
                         self.push_recent_opcode(op.as_i64());
 
                         let val = match self.stack.pop() {
                             Some(value) => value,
-                            None => {
-                                self.record_error(VMError::StackUnderflow);
-                                return None;
-                            }
+                            None => { self.record_error(VMError::StackUnderflow); return None; }
                         };
 
                         let number = match val {
                             UVal::Number(n) => n,
-                            UVal::Bool(b) => {
-                                if b {
-                                    1.0
-                                } else {
-                                    0.0
-                                }
-                            }
+                            UVal::Bool(b) => { if b { 1.0 } else { 0.0 } }
                             UVal::Nil => f64::NAN,
-                            UVal::String(s) => {
-                                s.as_bytes().first().map(|b| *b as f64).unwrap_or(f64::NAN)
-                            }
+                            UVal::String(s) => s.as_bytes().first().map(|b| *b as f64).unwrap_or(f64::NAN),
                             UVal::Object(_) => f64::NAN,
                         };
                         if number >= 32.0 && number <= 126.0 && number.fract() == 0.0 {
@@ -946,19 +681,12 @@ impl SoulGainVM {
                         return Some(number);
                     }
                     Op::In => {
-                        let opcode_event = Event::Opcode {
-                            opcode: op.as_i64(),
-                            stack_depth: self.stack.len(),
-                        };
+                        let opcode_event = Event::Opcode { opcode: op.as_i64(), stack_depth: self.stack.len() };
                         self.record_event(opcode_event);
                         self.push_recent_opcode(op.as_i64());
                         return None;
                     }
-                    _ => {
-                        if !self.execute_opcode(op) {
-                            return None;
-                        }
-                    }
+                    _ => { if !self.execute_opcode(op) { return None; } }
                 },
                 None => self.record_error(VMError::InvalidOpcode(opcode)),
             }
@@ -968,14 +696,8 @@ impl SoulGainVM {
 
     fn execute_skill(&mut self, opcode: i64) {
         if let Some(macro_code) = self.skills.get_skill(opcode).cloned() {
-            let ctx = self.intuition.build_context(
-                &self.stack,
-                &self.recent_opcodes,
-                self.current_task_tag,
-            );
+            let ctx = self.build_context_snapshot();
             self.intuition.bootstrap_pattern_if_empty(opcode, &ctx);
-            self.intuition
-                .issue_pending_credit(opcode, self.tick, self.total_reward);
 
             let frame = ProgramFrame {
                 program: std::mem::take(&mut self.program),
@@ -984,11 +706,9 @@ impl SoulGainVM {
                     skill_id: opcode,
                     reward_before: self.total_reward,
                     errors_before: self.error_count,
-                    task_tag: ctx.task_tag,
-                    context_top_types: ctx.top_types,
-                    data_hash: ctx.data_hash,
-                    feature_hash: ctx.feature_hash,
-                    stack_hash: ctx.stack_hash,
+                    domain_tag: ctx.domain_tag,
+                    features: ctx.features,
+                    context_hash: ctx.context_hash,
                 }),
             };
             self.program_stack.push(frame);
@@ -1000,9 +720,7 @@ impl SoulGainVM {
     }
 
     fn push_recent_opcode(&mut self, opcode: i64) {
-        if self.recent_opcodes.len() >= 6 {
-            let _ = self.recent_opcodes.pop_front();
-        }
+        if self.recent_opcodes.len() >= 6 { let _ = self.recent_opcodes.pop_front(); }
         self.recent_opcodes.push_back(opcode);
     }
 
@@ -1014,27 +732,19 @@ impl SoulGainVM {
             return true;
         }
 
-        let opcode_event = Event::Opcode {
-            opcode: opcode.as_i64(),
-            stack_depth: self.stack.len(),
-        };
+        let opcode_event = Event::Opcode { opcode: opcode.as_i64(), stack_depth: self.stack.len() };
         self.record_event(opcode_event);
         self.push_recent_opcode(opcode.as_i64());
 
         match opcode {
             Op::Literal => {
-                if self.ip >= self.program.len() {
-                    return false;
-                }
+                if self.ip >= self.program.len() { return false; }
                 let v = unsafe { *self.program.get_unchecked(self.ip) };
                 self.ip += 1;
                 self.stack.push(UVal::Number(v));
             }
             Op::Add => {
-                if self.stack.len() < 2 {
-                    self.record_error(VMError::StackUnderflow);
-                    return true;
-                }
+                if self.stack.len() < 2 { self.record_error(VMError::StackUnderflow); return true; }
                 let b = self.stack.pop().unwrap();
                 let a = self.stack.pop().unwrap();
                 match (a, b) {
@@ -1048,82 +758,50 @@ impl SoulGainVM {
                 }
             }
             Op::Sub => {
-                if self.stack.len() < 2 {
-                    self.record_error(VMError::StackUnderflow);
-                    return true;
-                }
+                if self.stack.len() < 2 { self.record_error(VMError::StackUnderflow); return true; }
                 let b = self.stack.pop().unwrap();
                 let a = self.stack.pop().unwrap();
-                if let (UVal::Number(na), UVal::Number(nb)) = (a, b) {
-                    self.stack.push(UVal::Number(na - nb));
-                }
+                if let (UVal::Number(na), UVal::Number(nb)) = (a, b) { self.stack.push(UVal::Number(na - nb)); }
             }
             Op::Mul => {
-                if self.stack.len() < 2 {
-                    self.record_error(VMError::StackUnderflow);
-                    return true;
-                }
+                if self.stack.len() < 2 { self.record_error(VMError::StackUnderflow); return true; }
                 let b = self.stack.pop().unwrap();
                 let a = self.stack.pop().unwrap();
-                if let (UVal::Number(na), UVal::Number(nb)) = (a, b) {
-                    self.stack.push(UVal::Number(na * nb));
-                }
+                if let (UVal::Number(na), UVal::Number(nb)) = (a, b) { self.stack.push(UVal::Number(na * nb)); }
             }
             Op::Div => {
-                if self.stack.len() < 2 {
-                    self.record_error(VMError::StackUnderflow);
-                    return true;
-                }
+                if self.stack.len() < 2 { self.record_error(VMError::StackUnderflow); return true; }
                 let b = self.stack.pop().unwrap();
                 let a = self.stack.pop().unwrap();
                 if let (UVal::Number(na), UVal::Number(nb)) = (a, b) {
-                    if nb == 0.0 {
-                        self.record_error(VMError::InvalidOpcode(opcode.as_i64()));
-                    } else {
-                        self.stack.push(UVal::Number(na / nb));
-                    }
+                    if nb == 0.0 { self.record_error(VMError::InvalidOpcode(opcode.as_i64())); } 
+                    else { self.stack.push(UVal::Number(na / nb)); }
                 } else {
                     self.record_error(VMError::InvalidOpcode(opcode.as_i64()));
                 }
             }
             Op::Eq => {
-                if self.stack.len() < 2 {
-                    self.record_error(VMError::StackUnderflow);
-                    return true;
-                }
+                if self.stack.len() < 2 { self.record_error(VMError::StackUnderflow); return true; }
                 let b = self.stack.pop().unwrap();
                 let a = self.stack.pop().unwrap();
                 self.stack.push(UVal::Bool(a == b));
             }
             Op::Gt => {
-                if self.stack.len() < 2 {
-                    self.record_error(VMError::StackUnderflow);
-                    return true;
-                }
+                if self.stack.len() < 2 { self.record_error(VMError::StackUnderflow); return true; }
                 let b = self.stack.pop().unwrap();
                 let a = self.stack.pop().unwrap();
-                if let (UVal::Number(na), UVal::Number(nb)) = (a, b) {
-                    self.stack.push(UVal::Bool(na > nb));
-                }
+                if let (UVal::Number(na), UVal::Number(nb)) = (a, b) { self.stack.push(UVal::Bool(na > nb)); }
             }
             Op::Not => {
-                if let Some(val) = self.stack.pop() {
-                    self.stack.push(UVal::Bool(!val.is_truthy()));
-                } else {
-                    self.record_error(VMError::StackUnderflow);
-                }
+                if let Some(val) = self.stack.pop() { self.stack.push(UVal::Bool(!val.is_truthy())); } 
+                else { self.record_error(VMError::StackUnderflow); }
             }
             Op::Store => {
-                if self.stack.len() < 2 {
-                    self.record_error(VMError::StackUnderflow);
-                    return true;
-                }
+                if self.stack.len() < 2 { self.record_error(VMError::StackUnderflow); return true; }
                 let val = self.stack.pop().unwrap();
                 let addr_val = self.stack.pop().unwrap();
                 if let UVal::Number(addr) = addr_val {
-                    if self.memory.write(addr, val) {
-                        self.record_event(Event::MemoryWrite);
-                    }
+                    if self.memory.write(addr, val) { self.record_event(Event::MemoryWrite); }
                 } else {
                     self.record_error(VMError::InvalidOpcode(opcode.as_i64()));
                 }
@@ -1133,90 +811,51 @@ impl SoulGainVM {
                     if let Some(v) = self.memory.read(addr) {
                         self.stack.push(v);
                         self.record_event(Event::MemoryRead);
-                    } else {
-                        self.stack.push(UVal::Nil);
-                    }
-                } else {
-                    self.record_error(VMError::StackUnderflow);
-                }
+                    } else { self.stack.push(UVal::Nil); }
+                } else { self.record_error(VMError::StackUnderflow); }
             }
             Op::Intuition => {
                 let candidates: Vec<i64> = self.skills.macros.keys().copied().collect();
-                let ctx = self.intuition.build_context(
-                    &self.stack,
-                    &self.recent_opcodes,
-                    self.current_task_tag,
-                );
-                if let Some(skill_id) = self.intuition.select_skill(&ctx, &candidates, self.tick) {
+                let ctx = self.build_context_snapshot();
+                if let Some(skill_id) = self.intuition.select_action(&ctx, &candidates, self.tick) {
                     self.execute_skill(skill_id);
                 }
             }
             Op::Jmp => {
-                if self.ip >= self.program.len() {
-                    return false;
-                }
+                if self.ip >= self.program.len() { return false; }
                 let target = self.program[self.ip];
                 self.ip += 1;
-                if !target.is_finite() || target < 0.0 {
-                    self.record_error(VMError::InvalidJump(-1));
-                    return true;
-                }
+                if !target.is_finite() || target < 0.0 { self.record_error(VMError::InvalidJump(-1)); return true; }
                 let new_ip = target.round() as usize;
-                if new_ip >= self.program.len() {
-                    self.record_error(VMError::InvalidJump(new_ip as i64));
-                    return true;
-                }
+                if new_ip >= self.program.len() { self.record_error(VMError::InvalidJump(new_ip as i64)); return true; }
                 self.ip = new_ip;
             }
             Op::JmpIf => {
-                if self.ip >= self.program.len() {
-                    self.record_error(VMError::InvalidJump(-1));
-                    return false;
-                }
-                if self.stack.is_empty() {
-                    self.record_error(VMError::StackUnderflow);
-                    return true;
-                }
+                if self.ip >= self.program.len() { self.record_error(VMError::InvalidJump(-1)); return false; }
+                if self.stack.is_empty() { self.record_error(VMError::StackUnderflow); return true; }
                 let target = self.program[self.ip];
                 self.ip += 1;
                 let condition = self.stack.pop().unwrap();
                 if condition.is_truthy() {
-                    if !target.is_finite() || target < 0.0 {
-                        self.record_error(VMError::InvalidJump(-1));
-                        return true;
-                    }
+                    if !target.is_finite() || target < 0.0 { self.record_error(VMError::InvalidJump(-1)); return true; }
                     let new_ip = target.round() as usize;
-                    if new_ip >= self.program.len() {
-                        self.record_error(VMError::InvalidJump(new_ip as i64));
-                        return true;
-                    }
+                    if new_ip >= self.program.len() { self.record_error(VMError::InvalidJump(new_ip as i64)); return true; }
                     self.ip = new_ip;
                 }
             }
             Op::Call => {
-                if self.ip >= self.program.len() {
-                    return false;
-                }
+                if self.ip >= self.program.len() { return false; }
                 let target = self.program[self.ip];
                 self.ip += 1;
-                if !target.is_finite() || target < 0.0 {
-                    self.record_error(VMError::InvalidJump(-1));
-                    return true;
-                }
+                if !target.is_finite() || target < 0.0 { self.record_error(VMError::InvalidJump(-1)); return true; }
                 let new_ip = target.round() as usize;
-                if new_ip >= self.program.len() {
-                    self.record_error(VMError::InvalidJump(new_ip as i64));
-                    return true;
-                }
+                if new_ip >= self.program.len() { self.record_error(VMError::InvalidJump(new_ip as i64)); return true; }
                 self.call_stack.push(self.ip);
                 self.ip = new_ip;
             }
             Op::Ret => {
-                if let Some(return_ip) = self.call_stack.pop() {
-                    self.ip = return_ip;
-                } else {
-                    self.record_error(VMError::ReturnStackUnderflow);
-                }
+                if let Some(return_ip) = self.call_stack.pop() { self.ip = return_ip; } 
+                else { self.record_error(VMError::ReturnStackUnderflow); }
             }
             Op::Reward => {
                 self.total_reward += 100.0;
@@ -1242,100 +881,63 @@ impl SoulGainVM {
             }
             Op::Halt => {
                 self.flush_trace();
-                if self.restore_program() {
-                    return true;
-                }
+                if self.restore_program() { return true; }
                 return false;
             }
             Op::Swap => {
-                if self.stack.len() < 2 {
-                    self.record_error(VMError::StackUnderflow);
-                    return true;
-                }
+                if self.stack.len() < 2 { self.record_error(VMError::StackUnderflow); return true; }
                 let len = self.stack.len();
                 self.stack.swap(len - 1, len - 2);
             }
             Op::Dup => {
-                if let Some(val) = self.stack.last().cloned() {
-                    self.stack.push(val);
-                } else {
-                    self.record_error(VMError::StackUnderflow);
-                }
+                if let Some(val) = self.stack.last().cloned() { self.stack.push(val); } 
+                else { self.record_error(VMError::StackUnderflow); }
             }
             Op::Over => {
-                if self.stack.len() < 2 {
-                    self.record_error(VMError::StackUnderflow);
-                    return true;
-                }
+                if self.stack.len() < 2 { self.record_error(VMError::StackUnderflow); return true; }
                 let len = self.stack.len();
                 let val = self.stack[len - 2].clone();
                 self.stack.push(val);
             }
             Op::Drop => {
-                if self.stack.pop().is_none() {
-                    self.record_error(VMError::StackUnderflow);
-                }
+                if self.stack.pop().is_none() { self.record_error(VMError::StackUnderflow); }
             }
             Op::And => {
-                if self.stack.len() < 2 {
-                    self.record_error(VMError::StackUnderflow);
-                    return true;
-                }
+                if self.stack.len() < 2 { self.record_error(VMError::StackUnderflow); return true; }
                 let b = self.stack.pop().unwrap();
                 let a = self.stack.pop().unwrap();
                 self.stack.push(UVal::Bool(a.is_truthy() && b.is_truthy()));
             }
             Op::Or => {
-                if self.stack.len() < 2 {
-                    self.record_error(VMError::StackUnderflow);
-                    return true;
-                }
+                if self.stack.len() < 2 { self.record_error(VMError::StackUnderflow); return true; }
                 let b = self.stack.pop().unwrap();
                 let a = self.stack.pop().unwrap();
                 self.stack.push(UVal::Bool(a.is_truthy() || b.is_truthy()));
             }
             Op::Xor => {
-                if self.stack.len() < 2 {
-                    self.record_error(VMError::StackUnderflow);
-                    return true;
-                }
+                if self.stack.len() < 2 { self.record_error(VMError::StackUnderflow); return true; }
                 let b = self.stack.pop().unwrap();
                 let a = self.stack.pop().unwrap();
                 let result = a.is_truthy() ^ b.is_truthy();
                 self.stack.push(UVal::Bool(result));
             }
             Op::IsZero => {
-                if let Some(val) = self.stack.pop() {
-                    self.stack.push(UVal::Bool(!val.is_truthy()));
-                } else {
-                    self.record_error(VMError::StackUnderflow);
-                }
+                if let Some(val) = self.stack.pop() { self.stack.push(UVal::Bool(!val.is_truthy())); } 
+                else { self.record_error(VMError::StackUnderflow); }
             }
             Op::Mod => {
-                if self.stack.len() < 2 {
-                    self.record_error(VMError::StackUnderflow);
-                    return true;
-                }
+                if self.stack.len() < 2 { self.record_error(VMError::StackUnderflow); return true; }
                 let b = self.stack.pop().unwrap();
                 let a = self.stack.pop().unwrap();
-                if let (UVal::Number(na), UVal::Number(nb)) = (a, b) {
-                    self.stack.push(UVal::Number(na % nb));
-                } else {
-                    self.record_error(VMError::InvalidOpcode(opcode.as_i64()));
-                }
+                if let (UVal::Number(na), UVal::Number(nb)) = (a, b) { self.stack.push(UVal::Number(na % nb)); } 
+                else { self.record_error(VMError::InvalidOpcode(opcode.as_i64())); }
             }
             Op::Pow => {
-                if self.stack.len() < 2 {
-                    self.record_error(VMError::StackUnderflow);
-                    return true;
-                }
+                if self.stack.len() < 2 { self.record_error(VMError::StackUnderflow); return true; }
                 let b = self.stack.pop().unwrap();
                 let a = self.stack.pop().unwrap();
-                if let (UVal::Number(base), UVal::Number(exp)) = (a, b) {
-                    self.stack.push(UVal::Number(base.powf(exp)));
-                } else {
-                    self.record_error(VMError::InvalidOpcode(opcode.as_i64()));
-                }
+                if let (UVal::Number(base), UVal::Number(exp)) = (a, b) { self.stack.push(UVal::Number(base.powf(exp))); } 
+                else { self.record_error(VMError::InvalidOpcode(opcode.as_i64())); }
             }
             Op::Inc => match self.stack.pop() {
                 Some(UVal::Number(n)) => self.stack.push(UVal::Number(n + 1.0)),
@@ -1368,10 +970,7 @@ impl SoulGainVM {
                 }
             }
             Op::Out => {
-                let Some(val) = self.stack.pop() else {
-                    self.record_error(VMError::StackUnderflow);
-                    return true;
-                };
+                let Some(val) = self.stack.pop() else { self.record_error(VMError::StackUnderflow); return true; };
                 match val {
                     UVal::Number(n) => {
                         if n >= 32.0 && n <= 126.0 && n.fract() == 0.0 {
@@ -1383,12 +982,8 @@ impl SoulGainVM {
                             print!("[{}]", n);
                         }
                     }
-                    UVal::String(s) => {
-                        print!("{}", s);
-                    }
-                    _ => {
-                        print!("{:?}", val);
-                    }
+                    UVal::String(s) => { print!("{}", s); }
+                    _ => { print!("{:?}", val); }
                 }
                 let _ = io::stdout().flush();
             }
@@ -1399,11 +994,7 @@ impl SoulGainVM {
 
     fn find_next_opcode(&self, target_opcode: i64) -> Option<usize> {
         self.program.iter().enumerate().find_map(|(idx, &raw)| {
-            if raw == target_opcode as f64 {
-                Some(idx)
-            } else {
-                None
-            }
+            if raw == target_opcode as f64 { Some(idx) } else { None }
         })
     }
 }
