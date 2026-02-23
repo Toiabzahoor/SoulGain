@@ -37,9 +37,8 @@ pub enum Op {
     Out = 31, Pow = 32,
 }
 
-pub const CORE_STACK_SIZE: usize = 64;
-pub const CORE_MEMORY_SIZE: usize = 64;
-
+pub const CORE_STACK_SIZE: usize = 256;
+pub const CORE_MEMORY_SIZE: usize = 256;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StepStatus {
     Continue,

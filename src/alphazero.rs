@@ -547,9 +547,7 @@ fn aggregate_value(
     program: &[Op],
     config: &ReasoningConfig<Op>,
 ) -> f32 {
-    if program.is_empty() {
-        return 0.0;
-    }
+    if program.is_empty() { return 0.0; }
     let mut total = 0.0;
     let mut matched = 0usize;
     let mut runner = root_state.clone();
@@ -562,19 +560,16 @@ fn aggregate_value(
         while runner.ip() < program.len() && steps < config.max_ops_per_candidate {
             match runner.step(program[runner.ip()]) {
                 StepStatus::Halt => break,
-                StepStatus::Crash => {
-                    crashed = true;
-                    break;
-                }
+                StepStatus::Crash => { crashed = true; break; }
                 _ => {}
             }
             steps += 1;
         }
         
-        if crashed {
-            return -0.5;
-        }
+        if crashed { return -0.5; }
         
+       // Inside src/alphazero.rs -> fn aggregate_value()
+
         let output = runner.extract_output();
         if output == case.expected_output {
             total += 1.0;
@@ -582,22 +577,18 @@ fn aggregate_value(
         } else if let (Some(UVal::Number(got)), Some(UVal::Number(want))) =
             (output.last(), case.expected_output.first())
         {
-            if *got != 0.0 && *want != 0.0 {
-                if want % got == 0.0 {
-                    total += 0.4;
-                } else if got % want == 0.0 {
-                    total += 0.2;
-                }
-            }
-            if *got == 0.0 {
-                total += 0.1;
-            }
+            // 🌟 STRICT REGRESSION: No more partial credit for "Halt"!
+            // If it is off by 1.0 (guessing 0 when the answer is 1), it gets 0.0 points.
+            // If it is totally backwards (guessing 1 when the answer is -1), it gets -1.0 points!
+            let diff = (*got - *want).abs();
+            let accuracy = 1.0 - diff; 
+            total += accuracy as f32;
+            
+            if diff < 0.15 { matched += 1; }
         }
     }
     
-    if matched == task.train_cases.len() {
-        return 1.0;
-    }
+    if matched == task.train_cases.len() { return 1.0; }
     
     let mut score = total / task.train_cases.len() as f32;
     score -= config.length_penalty
