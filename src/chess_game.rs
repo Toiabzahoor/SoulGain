@@ -630,8 +630,8 @@ pub fn run_self_match() {
     while !game.is_terminal() {
         if game.board.side_to_move() == soul_color {
             let config = ReasoningConfig::<WrappedMove> {
-                simulations: 2500, max_depth: 12, max_program_len: 8, max_ops_per_candidate: 8,
-                exploration_constant: 0.2, length_penalty: 0.1, loop_penalty: 2.0,
+                simulations: 80000, max_depth: 18, max_program_len: 8, max_ops_per_candidate: 8,
+                exploration_constant: 0.5, length_penalty: 0.1, loop_penalty: 2.0,
                 action_space: MoveGen::new_legal(&game.board).map(WrappedMove).collect(), arena_capacity: 1_000_000,
             };
             let (best_path, _) = solve_universal_with_stats(&game, &config, &policy);
