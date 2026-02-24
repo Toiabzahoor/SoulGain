@@ -1,0 +1,451 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║                            SOULGAIN ACTIVE                           ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+CHOOSE MODULE TO WORK WITH:
+  [1] Tic-Tac-Toe
+  [2] Chess (Watch SG vs Stockfish Exhibition)
+  [3] Chess (Massive SG vs Stockfish Evolution)
+  [4] Chess (Massive SG vs SG Sandbox Training)
+  [5] Chess (Watch SG vs SG Exhibition)
+  [6] Exit
+
+> 
+🌸 EVOLUTIONARY SURVIVAL LOOP START (128 Eyes | Hybrid Reservoir)
+Games to play: Game 1 | Len: 13 | Peak: 0.50 | Surprise: 0.4218 | Pruned: 0
+Game 2 | Len: 24 | Peak: -0.00 | Surprise: 0.2297 | Pruned: 0
+Game 3 | Len: 27 | Peak: 0.50 | Surprise: 0.2042 | Pruned: 0
+Game 4 | Len: 54 | Peak: -0.00 | Surprise: 0.0491 | Pruned: 0
+Game 5 | Len: 25 | Peak: 0.50 | Surprise: 0.2451 | Pruned: 0
+Game 6 | Len: 28 | Peak: -0.00 | Surprise: 0.2028 | Pruned: 0
+Game 7 | Len: 33 | Peak: 0.50 | Surprise: 0.1212 | Pruned: 0
+Game 8 | Len: 28 | Peak: -0.00 | Surprise: 0.2056 | Pruned: 0
+Game 9 | Len: 31 | Peak: 0.50 | Surprise: 0.1892 | Pruned: 0
+Game 10 | Len: 24 | Peak: -0.00 | Surprise: 0.2550 | Pruned: 1
+Game 11 | Len: 27 | Peak: 0.50 | Surprise: 0.2039 | Pruned: 0
+Game 12 | Len: 36 | Peak: -0.00 | Surprise: 0.0893 | Pruned: 0
+Game 13 | Len: 29 | Peak: 0.50 | Surprise: 0.1897 | Pruned: 0
+Game 14 | Len: 26 | Peak: -0.00 | Surprise: 0.2131 | Pruned: 0
+Game 15 | Len: 27 | Peak: 0.50 | Surprise: 0.2188 | Pruned: 0
+Game 16 | Len: 22 | Peak: -0.00 | Surprise: 0.3086 | Pruned: 0
+Game 17 | Len: 25 | Peak: 0.50 | Surprise: 0.2395 | Pruned: 0
+Game 18 | Len: 20 | Peak: -0.00 | Surprise: 0.2870 | Pruned: 0
+Game 19 | Len: 27 | Peak: 0.50 | Surprise: 0.1998 | Pruned: 0
+Game 20 | Len: 40 | Peak: -0.00 | Surprise: 0.0370 | Pruned: 1
+Game 21 | Len: 9 | Peak: 0.50 | Surprise: 0.5031 | Pruned: 0
+Game 22 | Len: 32 | Peak: -0.00 | Surprise: 0.1533 | Pruned: 0
+Game 23 | Len: 35 | Peak: 0.50 | Surprise: 0.1246 | Pruned: 0
+Game 24 | Len: 36 | Peak: -0.00 | Surprise: 0.0807 | Pruned: 0
+Game 25 | Len: 23 | Peak: 0.50 | Surprise: 0.2441 | Pruned: 0
+Game 26 | Len: 24 | Peak: -0.00 | Surprise: 0.2517 | Pruned: 0
+Game 27 | Len: 17 | Peak: 0.50 | Surprise: 0.3244 | Pruned: 0
+Game 28 | Len: 14 | Peak: -0.00 | Surprise: 0.3625 | Pruned: 0
+Game 29 | Len: 35 | Peak: 0.50 | Surprise: 0.1243 | Pruned: 0
+Game 30 | Len: 14 | Peak: -0.00 | Surprise: 0.3982 | Pruned: 1
+Game 31 | Len: 25 | Peak: 0.50 | Surprise: 0.2356 | Pruned: 0
+Game 32 | Len: 38 | Peak: -0.00 | Surprise: 0.0926 | Pruned: 0
+Game 33 | Len: 37 | Peak: 0.50 | Surprise: 0.0798 | Pruned: 0
+Game 34 | Len: 22 | Peak: -0.00 | Surprise: 0.2955 | Pruned: 0
+Game 35 | Len: 29 | Peak: 0.50 | Surprise: 0.2059 | Pruned: 0
+Game 36 | Len: 36 | Peak: -0.00 | Surprise: 0.1280 | Pruned: 0
+Game 37 | Len: 51 | Peak: 0.50 | Surprise: 0.0626 | Pruned: 0
+Game 38 | Len: 36 | Peak: -0.00 | Surprise: 0.0976 | Pruned: 0
+Game 39 | Len: 29 | Peak: 0.50 | Surprise: 0.1754 | Pruned: 0
+Game 40 | Len: 14 | Peak: -0.00 | Surprise: 0.3977 | Pruned: 1
+Game 41 | Len: 49 | Peak: 0.50 | Surprise: 0.0485 | Pruned: 0
+Game 42 | Len: 16 | Peak: -0.00 | Surprise: 0.3500 | Pruned: 0
+Game 43 | Len: 37 | Peak: 0.50 | Surprise: 0.0931 | Pruned: 0
+Game 44 | Len: 22 | Peak: -0.00 | Surprise: 0.2650 | Pruned: 0
+Game 45 | Len: 29 | Peak: 0.50 | Surprise: 0.1749 | Pruned: 0
+Game 46 | Len: 30 | Peak: -0.00 | Surprise: 0.1739 | Pruned: 0
+Game 47 | Len: 35 | Peak: 0.50 | Surprise: 0.0969 | Pruned: 0
+Game 48 | Len: 34 | Peak: -0.00 | Surprise: 0.1179 | Pruned: 0
+Game 49 | Len: 19 | Peak: 0.50 | Surprise: 0.3213 | Pruned: 0
+Game 50 | Len: 24 | Peak: -0.00 | Surprise: 0.2564 | Pruned: 1
+Game 51 | Len: 17 | Peak: 0.50 | Surprise: 0.3539 | Pruned: 0
+Game 52 | Len: 34 | Peak: -0.00 | Surprise: 0.1217 | Pruned: 0
+Game 53 | Len: 35 | Peak: 0.50 | Surprise: 0.1124 | Pruned: 0
+Game 54 | Len: 32 | Peak: -0.00 | Surprise: 0.1526 | Pruned: 0
+Game 55 | Len: 47 | Peak: 0.50 | Surprise: 0.0549 | Pruned: 0
+Game 56 | Len: 36 | Peak: -0.00 | Surprise: 0.1014 | Pruned: 0
+Game 57 | Len: 23 | Peak: 0.50 | Surprise: 0.2597 | Pruned: 0
+Game 58 | Len: 18 | Peak: -0.00 | Surprise: 0.3348 | Pruned: 0
+Game 59 | Len: 27 | Peak: 0.50 | Surprise: 0.2441 | Pruned: 0
+Game 60 | Len: 48 | Peak: -0.00 | Surprise: 0.0734 | Pruned: 1
+Game 61 | Len: 13 | Peak: 0.50 | Surprise: 0.3855 | Pruned: 0
+Game 62 | Len: 24 | Peak: -0.00 | Surprise: 0.2602 | Pruned: 0
+Game 63 | Len: 29 | Peak: 0.50 | Surprise: 0.1790 | Pruned: 0
+Game 64 | Len: 16 | Peak: -0.00 | Surprise: 0.3354 | Pruned: 0
+Game 65 | Len: 21 | Peak: 0.50 | Surprise: 0.2990 | Pruned: 0
+Game 66 | Len: 42 | Peak: -0.00 | Surprise: 0.0676 | Pruned: 0
+Game 67 | Len: 29 | Peak: 0.50 | Surprise: 0.1839 | Pruned: 0
+Game 68 | Len: 38 | Peak: -0.00 | Surprise: 0.0738 | Pruned: 0
+Game 69 | Len: 23 | Peak: 0.50 | Surprise: 0.2778 | Pruned: 0
+Game 70 | Len: 32 | Peak: -0.00 | Surprise: 0.1674 | Pruned: 1
+Game 71 | Len: 55 | Peak: 0.50 | Surprise: 0.0448 | Pruned: 0
+Game 72 | Len: 18 | Peak: -0.00 | Surprise: 0.3188 | Pruned: 0
+Game 73 | Len: 25 | Peak: 0.50 | Surprise: 0.2312 | Pruned: 0
+Game 74 | Len: 54 | Peak: -0.00 | Surprise: 0.0564 | Pruned: 0
+Game 75 | Len: 13 | Peak: 0.50 | Surprise: 0.3840 | Pruned: 0
+Game 76 | Len: 42 | Peak: -0.00 | Surprise: 0.0748 | Pruned: 0
+Game 77 | Len: 35 | Peak: 0.50 | Surprise: 0.1075 | Pruned: 0
+Game 78 | Len: 22 | Peak: -0.00 | Surprise: 0.3298 | Pruned: 0
+Game 79 | Len: 51 | Peak: 0.50 | Surprise: 0.0439 | Pruned: 0
+Game 80 | Len: 52 | Peak: -0.00 | Surprise: 0.0425 | Pruned: 1
+Game 81 | Len: 49 | Peak: 0.50 | Surprise: 0.0537 | Pruned: 0
+Game 82 | Len: 40 | Peak: -0.00 | Surprise: 0.0683 | Pruned: 0
+Game 83 | Len: 15 | Peak: 0.50 | Surprise: 0.3844 | Pruned: 0
+Game 84 | Len: 12 | Peak: -0.00 | Surprise: 0.3941 | Pruned: 0
+Game 85 | Len: 33 | Peak: 0.50 | Surprise: 0.1238 | Pruned: 0
+Game 86 | Len: 10 | Peak: -0.00 | Surprise: 0.4276 | Pruned: 0
+Game 87 | Len: 17 | Peak: 0.50 | Surprise: 0.3505 | Pruned: 0
+Game 88 | Len: 28 | Peak: -0.00 | Surprise: 0.2104 | Pruned: 0
+Game 89 | Len: 13 | Peak: 0.50 | Surprise: 0.3823 | Pruned: 0
+Game 90 | Len: 14 | Peak: -0.00 | Surprise: 0.3668 | Pruned: 1
+Game 91 | Len: 25 | Peak: 0.50 | Surprise: 0.2487 | Pruned: 0
+Game 92 | Len: 60 | Peak: -0.00 | Surprise: 0.0545 | Pruned: 0
+Game 93 | Len: 21 | Peak: 0.50 | Surprise: 0.2951 | Pruned: 0
+Game 94 | Len: 44 | Peak: -0.00 | Surprise: 0.0369 | Pruned: 0
+Game 95 | Len: 21 | Peak: 0.50 | Surprise: 0.2758 | Pruned: 0
+Game 96 | Len: 36 | Peak: -0.00 | Surprise: 0.1063 | Pruned: 0
+Game 97 | Len: 51 | Peak: 0.50 | Surprise: 0.0525 | Pruned: 0
+Game 98 | Len: 10 | Peak: -0.00 | Surprise: 0.4273 | Pruned: 0
+Game 99 | Len: 21 | Peak: 0.50 | Surprise: 0.3057 | Pruned: 0
+Game 100 | Len: 10 | Peak: -0.00 | Surprise: 0.4264 | Pruned: 1
+
+CHOOSE MODULE TO WORK WITH:
+  [1] Tic-Tac-Toe
+  [2] Chess (Watch SG vs Stockfish Exhibition)
+  [3] Chess (Massive SG vs Stockfish Evolution)
+  [4] Chess (Massive SG vs SG Sandbox Training)
+  [5] Chess (Watch SG vs SG Exhibition)
+  [6] Exit
+
+> 
+⚔️ SOULGAIN vs SOULGAIN (Exhibition Match)
+
+🤖 SoulGain (White): b1a3
+rnbqkbnr/pppppppp/8/8/8/N7/PPPPPPPP/R1BQKBNR b KQkq - 0 1
+
+🤖 SoulGain (Black): c7c6
+rnbqkbnr/pp1ppppp/2p5/8/8/N7/PPPPPPPP/R1BQKBNR w KQkq - 0 1
+
+🤖 SoulGain (White): a1b1
+rnbqkbnr/pp1ppppp/2p5/8/8/N7/PPPPPPPP/1RBQKBNR b Kkq - 0 1
+
+🤖 SoulGain (Black): a7a5
+rnbqkbnr/1p1ppppp/2p5/p7/8/N7/PPPPPPPP/1RBQKBNR w Kkq - 0 1
+
+🤖 SoulGain (White): g1f3
+rnbqkbnr/1p1ppppp/2p5/p7/8/N4N2/PPPPPPPP/1RBQKB1R b Kkq - 0 1
+
+🤖 SoulGain (Black): e7e5
+rnbqkbnr/1p1p1ppp/2p5/p3p3/8/N4N2/PPPPPPPP/1RBQKB1R w Kkq - 0 1
+
+🤖 SoulGain (White): g2g3
+rnbqkbnr/1p1p1ppp/2p5/p3p3/8/N4NP1/PPPPPP1P/1RBQKB1R b Kkq - 0 1
+
+🤖 SoulGain (Black): g8f6
+rnbqkb1r/1p1p1ppp/2p2n2/p3p3/8/N4NP1/PPPPPP1P/1RBQKB1R w Kkq - 0 1
+
+🤖 SoulGain (White): b2b4
+rnbqkb1r/1p1p1ppp/2p2n2/p3p3/1P6/N4NP1/P1PPPP1P/1RBQKB1R b Kkq - 0 1
+
+🤖 SoulGain (Black): f8e7
+rnbqk2r/1p1pbppp/2p2n2/p3p3/1P6/N4NP1/P1PPPP1P/1RBQKB1R w Kkq - 0 1
+
+🤖 SoulGain (White): b1a1
+rnbqk2r/1p1pbppp/2p2n2/p3p3/1P6/N4NP1/P1PPPP1P/R1BQKB1R b Kkq - 0 1
+
+🤖 SoulGain (Black): e7c5
+rnbqk2r/1p1p1ppp/2p2n2/p1b1p3/1P6/N4NP1/P1PPPP1P/R1BQKB1R w Kkq - 0 1
+
+🤖 SoulGain (White): e2e4
+rnbqk2r/1p1p1ppp/2p2n2/p1b1p3/1P2P3/N4NP1/P1PP1P1P/R1BQKB1R b Kkq - 0 1
+
+🤖 SoulGain (Black): e8f8
+rnbq1k1r/1p1p1ppp/2p2n2/p1b1p3/1P2P3/N4NP1/P1PP1P1P/R1BQKB1R w K - 0 1
+
+🤖 SoulGain (White): f3g1
+rnbq1k1r/1p1p1ppp/2p2n2/p1b1p3/1P2P3/N5P1/P1PP1P1P/R1BQKBNR b K - 0 1
+
+🤖 SoulGain (Black): g7g6
+rnbq1k1r/1p1p1p1p/2p2np1/p1b1p3/1P2P3/N5P1/P1PP1P1P/R1BQKBNR w K - 0 1
+
+🤖 SoulGain (White): h2h4
+rnbq1k1r/1p1p1p1p/2p2np1/p1b1p3/1P2P2P/N5P1/P1PP1P2/R1BQKBNR b K - 0 1
+
+🤖 SoulGain (Black): c5e7
+rnbq1k1r/1p1pbp1p/2p2np1/p3p3/1P2P2P/N5P1/P1PP1P2/R1BQKBNR w K - 0 1
+
+🤖 SoulGain (White): h1h3
+rnbq1k1r/1p1pbp1p/2p2np1/p3p3/1P2P2P/N5PR/P1PP1P2/R1BQKBN1 b - - 0 1
+
+🤖 SoulGain (Black): f6g4
+rnbq1k1r/1p1pbp1p/2p3p1/p3p3/1P2P1nP/N5PR/P1PP1P2/R1BQKBN1 w - - 0 1
+
+🤖 SoulGain (White): h4h5
+rnbq1k1r/1p1pbp1p/2p3p1/p3p2P/1P2P1n1/N5PR/P1PP1P2/R1BQKBN1 b - - 0 1
+
+🤖 SoulGain (Black): d8c7
+rnb2k1r/1pqpbp1p/2p3p1/p3p2P/1P2P1n1/N5PR/P1PP1P2/R1BQKBN1 w - - 0 1
+
+🤖 SoulGain (White): g1f3
+rnb2k1r/1pqpbp1p/2p3p1/p3p2P/1P2P1n1/N4NPR/P1PP1P2/R1BQKB2 b - - 0 1
+
+🤖 SoulGain (Black): c7d8
+rnbq1k1r/1p1pbp1p/2p3p1/p3p2P/1P2P1n1/N4NPR/P1PP1P2/R1BQKB2 w - - 0 1
+
+🤖 SoulGain (White): b4b5
+rnbq1k1r/1p1pbp1p/2p3p1/pP2p2P/4P1n1/N4NPR/P1PP1P2/R1BQKB2 b - - 0 1
+
+🤖 SoulGain (Black): b7b6
+rnbq1k1r/3pbp1p/1pp3p1/pP2p2P/4P1n1/N4NPR/P1PP1P2/R1BQKB2 w - - 0 1
+
+🤖 SoulGain (White): c2c3
+rnbq1k1r/3pbp1p/1pp3p1/pP2p2P/4P1n1/N1P2NPR/P2P1P2/R1BQKB2 b - - 0 1
+
+🤖 SoulGain (Black): f8g8
+rnbq2kr/3pbp1p/1pp3p1/pP2p2P/4P1n1/N1P2NPR/P2P1P2/R1BQKB2 w - - 0 1
+
+🤖 SoulGain (White): d2d3
+rnbq2kr/3pbp1p/1pp3p1/pP2p2P/4P1n1/N1PP1NPR/P4P2/R1BQKB2 b - - 0 1
+
+🤖 SoulGain (Black): c6b5
+rnbq2kr/3pbp1p/1p4p1/pp2p2P/4P1n1/N1PP1NPR/P4P2/R1BQKB2 w - - 0 1
+
+🤖 SoulGain (White): d1c2
+rnbq2kr/3pbp1p/1p4p1/pp2p2P/4P1n1/N1PP1NPR/P1Q2P2/R1B1KB2 b - - 0 1
+
+🤖 SoulGain (Black): g4h6
+rnbq2kr/3pbp1p/1p4pn/pp2p2P/4P3/N1PP1NPR/P1Q2P2/R1B1KB2 w - - 0 1
+
+🤖 SoulGain (White): f3h2
+rnbq2kr/3pbp1p/1p4pn/pp2p2P/4P3/N1PP2PR/P1Q2P1N/R1B1KB2 b - - 0 1
+
+🤖 SoulGain (Black): g6g5
+rnbq2kr/3pbp1p/1p5n/pp2p1pP/4P3/N1PP2PR/P1Q2P1N/R1B1KB2 w - - 0 1
+
+🤖 SoulGain (White): e1d2
+rnbq2kr/3pbp1p/1p5n/pp2p1pP/4P3/N1PP2PR/P1QK1P1N/R1B2B2 b - - 0 1
+
+🤖 SoulGain (Black): g8g7
+rnbq3r/3pbpkp/1p5n/pp2p1pP/4P3/N1PP2PR/P1QK1P1N/R1B2B2 w - - 0 1
+
+🤖 SoulGain (White): h2g4
+rnbq3r/3pbpkp/1p5n/pp2p1pP/4P1N1/N1PP2PR/P1QK1P2/R1B2B2 b - - 0 1
+
+🤖 SoulGain (Black): b8a6
+r1bq3r/3pbpkp/np5n/pp2p1pP/4P1N1/N1PP2PR/P1QK1P2/R1B2B2 w - - 0 1
+
+🤖 SoulGain (White): f1g2
+r1bq3r/3pbpkp/np5n/pp2p1pP/4P1N1/N1PP2PR/P1QK1PB1/R1B5 b - - 0 1
+
+🤖 SoulGain (Black): g7g8
+r1bq2kr/3pbp1p/np5n/pp2p1pP/4P1N1/N1PP2PR/P1QK1PB1/R1B5 w - - 0 1
+
+🤖 SoulGain (White): g4f6
+r1bq2kr/3pbp1p/np3N1n/pp2p1pP/4P3/N1PP2PR/P1QK1PB1/R1B5 b - - 0 1
+
+🤖 SoulGain (Black): e7f6
+r1bq2kr/3p1p1p/np3b1n/pp2p1pP/4P3/N1PP2PR/P1QK1PB1/R1B5 w - - 0 1
+
+🤖 SoulGain (White): h3h2
+r1bq2kr/3p1p1p/np3b1n/pp2p1pP/4P3/N1PP2P1/P1QK1PBR/R1B5 b - - 0 1
+
+🤖 SoulGain (Black): d7d6
+r1bq2kr/5p1p/np1p1b1n/pp2p1pP/4P3/N1PP2P1/P1QK1PBR/R1B5 w - - 0 1
+
+🤖 SoulGain (White): a1b1
+r1bq2kr/5p1p/np1p1b1n/pp2p1pP/4P3/N1PP2P1/P1QK1PBR/1RB5 b - - 0 1
+
+🤖 SoulGain (Black): a6c5
+r1bq2kr/5p1p/1p1p1b1n/ppn1p1pP/4P3/N1PP2P1/P1QK1PBR/1RB5 w - - 0 1
+
+🤖 SoulGain (White): c2d1
+r1bq2kr/5p1p/1p1p1b1n/ppn1p1pP/4P3/N1PP2P1/P2K1PBR/1RBQ4 b - - 0 1
+
+🤖 SoulGain (Black): c8a6
+r2q2kr/5p1p/bp1p1b1n/ppn1p1pP/4P3/N1PP2P1/P2K1PBR/1RBQ4 w - - 0 1
+
+🤖 SoulGain (White): d1b3
+r2q2kr/5p1p/bp1p1b1n/ppn1p1pP/4P3/NQPP2P1/P2K1PBR/1RB5 b - - 0 1
+
+🤖 SoulGain (Black): c5d3
+r2q2kr/5p1p/bp1p1b1n/pp2p1pP/4P3/NQPn2P1/P2K1PBR/1RB5 w - - 0 1
+
+🤖 SoulGain (White): f2f4
+r2q2kr/5p1p/bp1p1b1n/pp2p1pP/4PP2/NQPn2P1/P2K2BR/1RB5 b - - 0 1
+
+🤖 SoulGain (Black): d3b4
+r2q2kr/5p1p/bp1p1b1n/pp2p1pP/1n2PP2/NQP3P1/P2K2BR/1RB5 w - - 0 1
+
+🤖 SoulGain (White): h2h4
+r2q2kr/5p1p/bp1p1b1n/pp2p1pP/1n2PP1R/NQP3P1/P2K2B1/1RB5 b - - 0 1
+
+🤖 SoulGain (Black): b4d3
+r2q2kr/5p1p/bp1p1b1n/pp2p1pP/4PP1R/NQPn2P1/P2K2B1/1RB5 w - - 0 1
+
+🤖 SoulGain (White): b3c2
+r2q2kr/5p1p/bp1p1b1n/pp2p1pP/4PP1R/N1Pn2P1/P1QK2B1/1RB5 b - - 0 1
+
+🤖 SoulGain (Black): d8d7
+r5kr/3q1p1p/bp1p1b1n/pp2p1pP/4PP1R/N1Pn2P1/P1QK2B1/1RB5 w - - 0 1
+
+🤖 SoulGain (White): b1b5
+r5kr/3q1p1p/bp1p1b1n/pR2p1pP/4PP1R/N1Pn2P1/P1QK2B1/2B5 b - - 0 1
+
+🤖 SoulGain (Black): a8c8
+2r3kr/3q1p1p/bp1p1b1n/pR2p1pP/4PP1R/N1Pn2P1/P1QK2B1/2B5 w - - 0 1
+
+🤖 SoulGain (White): d2d3
+2r3kr/3q1p1p/bp1p1b1n/pR2p1pP/4PP1R/N1PK2P1/P1Q3B1/2B5 b - - 0 1
+
+🤖 SoulGain (Black): c8d8
+3r2kr/3q1p1p/bp1p1b1n/pR2p1pP/4PP1R/N1PK2P1/P1Q3B1/2B5 w - - 0 1
+
+🤖 SoulGain (White): h4h3
+3r2kr/3q1p1p/bp1p1b1n/pR2p1pP/4PP2/N1PK2PR/P1Q3B1/2B5 b - - 0 1
+
+🤖 SoulGain (Black): d7b5
+3r2kr/5p1p/bp1p1b1n/pq2p1pP/4PP2/N1PK2PR/P1Q3B1/2B5 w - - 0 1
+
+🤖 SoulGain (White): a3c4
+3r2kr/5p1p/bp1p1b1n/pq2p1pP/2N1PP2/2PK2PR/P1Q3B1/2B5 b - - 0 1
+
+🤖 SoulGain (Black): h6g4
+3r2kr/5p1p/bp1p1b2/pq2p1pP/2N1PPn1/2PK2PR/P1Q3B1/2B5 w - - 0 1
+
+🤖 SoulGain (White): h5h6
+3r2kr/5p1p/bp1p1b1P/pq2p1p1/2N1PPn1/2PK2PR/P1Q3B1/2B5 b - - 0 1
+
+🤖 SoulGain (Black): g4h2
+3r2kr/5p1p/bp1p1b1P/pq2p1p1/2N1PP2/2PK2PR/P1Q3Bn/2B5 w - - 0 1
+
+🤖 SoulGain (White): g2f1
+3r2kr/5p1p/bp1p1b1P/pq2p1p1/2N1PP2/2PK2PR/P1Q4n/2B2B2 b - - 0 1
+
+🤖 SoulGain (Black): d6d5
+3r2kr/5p1p/bp3b1P/pq1pp1p1/2N1PP2/2PK2PR/P1Q4n/2B2B2 w - - 0 1
+
+🤖 SoulGain (White): d3d2
+3r2kr/5p1p/bp3b1P/pq1pp1p1/2N1PP2/2P3PR/P1QK3n/2B2B2 b - - 0 1
+
+🤖 SoulGain (Black): g5f4
+3r2kr/5p1p/bp3b1P/pq1pp3/2N1Pp2/2P3PR/P1QK3n/2B2B2 w - - 0 1
+
+🤖 SoulGain (White): h3h4
+3r2kr/5p1p/bp3b1P/pq1pp3/2N1Pp1R/2P3P1/P1QK3n/2B2B2 b - - 0 1
+
+🤖 SoulGain (Black): f4g3
+3r2kr/5p1p/bp3b1P/pq1pp3/2N1P2R/2P3p1/P1QK3n/2B2B2 w - - 0 1
+
+🤖 SoulGain (White): a2a3
+3r2kr/5p1p/bp3b1P/pq1pp3/2N1P2R/P1P3p1/2QK3n/2B2B2 b - - 0 1
+
+🤖 SoulGain (Black): b5e8
+3rq1kr/5p1p/bp3b1P/p2pp3/2N1P2R/P1P3p1/2QK3n/2B2B2 w - - 0 1
+
+🤖 SoulGain (White): h4h3
+3rq1kr/5p1p/bp3b1P/p2pp3/2N1P3/P1P3pR/2QK3n/2B2B2 b - - 0 1
+
+🤖 SoulGain (Black): f6g5
+3rq1kr/5p1p/bp5P/p2pp1b1/2N1P3/P1P3pR/2QK3n/2B2B2 w - - 0 1
+
+🤖 SoulGain (White): d2e2
+3rq1kr/5p1p/bp5P/p2pp1b1/2N1P3/P1P3pR/2Q1K2n/2B2B2 b - - 0 1
+
+🤖 SoulGain (Black): g3g2
+3rq1kr/5p1p/bp5P/p2pp1b1/2N1P3/P1P4R/2Q1K1pn/2B2B2 w - - 0 1
+
+🤖 SoulGain (White): c2b3
+3rq1kr/5p1p/bp5P/p2pp1b1/2N1P3/PQP4R/4K1pn/2B2B2 b - - 0 1
+
+🤖 SoulGain (Black): g2f1q
+3rq1kr/5p1p/bp5P/p2pp1b1/2N1P3/PQP4R/4K2n/2B2q2 w - - 0 1
+
+Match finished! Status: Checkmate
+
+CHOOSE MODULE TO WORK WITH:
+  [1] Tic-Tac-Toe
+  [2] Chess (Watch SG vs Stockfish Exhibition)
+  [3] Chess (Massive SG vs Stockfish Evolution)
+  [4] Chess (Massive SG vs SG Sandbox Training)
+  [5] Chess (Watch SG vs SG Exhibition)
+  [6] Exit
+
+> 
+🌸 SOULGAIN VS SOULGAIN: SELF-PLAY SANDBOX START (128 Eyes)
+Games to play: Sandbox Game 1 | Len: 88 | Avg Surprise: 0.0390 | Pruned: 0
+Sandbox Game 2 | Len: 61 | Avg Surprise: 0.0423 | Pruned: 0
+Sandbox Game 3 | Len: 140 | Avg Surprise: 0.0990 | Pruned: 0
+Sandbox Game 4 | Len: 155 | Avg Surprise: 0.0446 | Pruned: 0
+Sandbox Game 5 | Len: 187 | Avg Surprise: 0.1157 | Pruned: 0
+Sandbox Game 6 | Len: 105 | Avg Surprise: 0.0725 | Pruned: 0
+Sandbox Game 7 | Len: 200 | Avg Surprise: 0.0743 | Pruned: 0
+Sandbox Game 8 | Len: 137 | Avg Surprise: 0.1106 | Pruned: 0
+Sandbox Game 9 | Len: 82 | Avg Surprise: 0.1115 | Pruned: 0
+Sandbox Game 10 | Len: 121 | Avg Surprise: 0.1526 | Pruned: 1
+Sandbox Game 11 | Len: 112 | Avg Surprise: 0.0399 | Pruned: 0
+Sandbox Game 12 | Len: 200 | Avg Surprise: 0.0928 | Pruned: 0
+Sandbox Game 13 | Len: 200 | Avg Surprise: 0.0911 | Pruned: 0
+Sandbox Game 14 | Len: 115 | Avg Surprise: 0.0832 | Pruned: 0
+Sandbox Game 15 | Len: 109 | Avg Surprise: 0.0591 | Pruned: 0
+Sandbox Game 16 | Len: 21 | Avg Surprise: 0.0363 | Pruned: 0
+Sandbox Game 17 | Len: 49 | Avg Surprise: 0.0563 | Pruned: 0
+Sandbox Game 18 | Len: 177 | Avg Surprise: 0.0738 | Pruned: 0
+Sandbox Game 19 | Len: 77 | Avg Surprise: 0.0575 | Pruned: 0
+Sandbox Game 20 | Len: 51 | Avg Surprise: 0.0467 | Pruned: 1
+Sandbox Game 21 | Len: 200 | Avg Surprise: 0.0516 | Pruned: 0
+Sandbox Game 22 | Len: 85 | Avg Surprise: 0.1268 | Pruned: 0
+Sandbox Game 23 | Len: 90 | Avg Surprise: 0.1277 | Pruned: 0
+Sandbox Game 24 | Len: 200 | Avg Surprise: 0.0804 | Pruned: 0
+Sandbox Game 25 | Len: 43 | Avg Surprise: 0.0436 | Pruned: 0
+Sandbox Game 26 | Len: 200 | Avg Surprise: 0.1414 | Pruned: 0
+Sandbox Game 27 | Len: 58 | Avg Surprise: 0.0506 | Pruned: 0
+Sandbox Game 28 | Len: 113 | Avg Surprise: 0.0593 | Pruned: 0
+Sandbox Game 29 | Len: 198 | Avg Surprise: 0.0756 | Pruned: 0
+Sandbox Game 30 | Len: 93 | Avg Surprise: 0.0437 | Pruned: 1
+Sandbox Game 31 | Len: 178 | Avg Surprise: 0.1571 | Pruned: 0
+Sandbox Game 32 | Len: 97 | Avg Surprise: 0.0595 | Pruned: 0
+Sandbox Game 33 | Len: 200 | Avg Surprise: 0.0891 | Pruned: 0
+Sandbox Game 34 | Len: 91 | Avg Surprise: 0.1253 | Pruned: 0
+Sandbox Game 35 | Len: 95 | Avg Surprise: 0.0513 | Pruned: 0
+Sandbox Game 36 | Len: 50 | Avg Surprise: 0.0403 | Pruned: 0
+Sandbox Game 37 | Len: 200 | Avg Surprise: 0.1215 | Pruned: 0
+Sandbox Game 38 | Len: 145 | Avg Surprise: 0.1402 | Pruned: 0
+Sandbox Game 39 | Len: 97 | Avg Surprise: 0.1073 | Pruned: 0
+Sandbox Game 40 | Len: 98 | Avg Surprise: 0.0753 | Pruned: 1
+Sandbox Game 41 | Len: 200 | Avg Surprise: 0.0663 | Pruned: 0
+Sandbox Game 42 | Len: 139 | Avg Surprise: 0.1363 | Pruned: 0
+Sandbox Game 43 | Len: 55 | Avg Surprise: 0.0365 | Pruned: 0
+Sandbox Game 44 | Len: 200 | Avg Surprise: 0.0435 | Pruned: 0
+Sandbox Game 45 | Len: 200 | Avg Surprise: 0.0724 | Pruned: 0
+Sandbox Game 46 | Len: 149 | Avg Surprise: 0.1056 | Pruned: 0
+Sandbox Game 47 | Len: 95 | Avg Surprise: 0.0489 | Pruned: 0
+Sandbox Game 48 | Len: 166 | Avg Surprise: 0.0498 | Pruned: 0
+Sandbox Game 49 | Len: 126 | Avg Surprise: 0.0608 | Pruned: 0
+Sandbox Game 50 | Len: 111 | Avg Surprise: 0.0512 | Pruned: 1
+Sandbox Game 51 | Len: 169 | Avg Surprise: 0.0805 | Pruned: 0
+Sandbox Game 52 | Len: 61 | Avg Surprise: 0.0337 | Pruned: 0
+Sandbox Game 53 | Len: 97 | Avg Surprise: 0.0444 | Pruned: 0
+Sandbox Game 54 | Len: 68 | Avg Surprise: 0.0444 | Pruned: 0
+Sandbox Game 55 | Len: 71 | Avg Surprise: 0.0422 | Pruned: 0
+Sandbox Game 56 | Len: 90 | Avg Surprise: 0.0770 | Pruned: 0
+Sandbox Game 57 | Len: 76 | Avg Surprise: 0.1198 | Pruned: 0
+Sandbox Game 58 | Len: 28 | Avg Surprise: 0.0894 | Pruned: 0
+Sandbox Game 59 | Len: 200 | Avg Surprise: 0.0442 | Pruned: 0
+Sandbox Game 60 | Len: 71 | Avg Surprise: 0.0393 | Pruned: 1
+Sandbox Game 61 | Len: 27 | Avg Surprise: 0.0464 | Pruned: 0
+Sandbox Game 62 | Len: 103 | Avg Surprise: 0.0560 | Pruned: 0
+Sandbox Game 63 | Len: 63 | Avg Surprise: 0.0610 | Pruned: 0
+Sandbox Game 64 | Len: 58 | Avg Surprise: 0.0506 | Pruned: 0
+Sandbox Game 65 | Len: 156 | Avg Surprise: 0.1188 | Pruned: 0
+Sandbox Game 66 | Len: 200 | Avg Surprise: 0.0943 | Pruned: 0
+Sandbox Game 67 | Len: 89 | Avg Surprise: 0.0492 | Pruned: 0
+Sandbox Game 68 | Len: 63 | Avg Surprise: 0.0500 | Pruned: 0
+Sandbox Game 69 | Len: 200 | Avg Surprise: 0.1070 | Pruned: 0
+Sandbox Game 70 | Len: 85 | Avg Surprise: 0.0573 | Pruned: 1
+Sandbox Game 71 | Len: 81 | Avg Surprise: 0.0595 | Pruned: 0
+Sandbox Game 72 | Len: 35 | Avg Surprise: 0.0587 | Pruned: 0
+Sandbox Game 73 | Len: 51 | Avg Surprise: 0.0319 | Pruned: 0
