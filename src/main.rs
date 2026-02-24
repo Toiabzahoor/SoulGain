@@ -2,8 +2,21 @@ mod tictactoe;
 mod chess_game;
 
 use std::io::{self, Write};
+use std::env; // 🌸 Allows reading command line arguments
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    // 🌸 AUTOMATION CHECK
+    // If you run: cargo run --release -- --train 100
+    if args.len() >= 3 && args[1] == "--train" {
+        let num_games: usize = args[2].parse().unwrap_or(100);
+        println!("🚀 KAGGLE MODE: Training for {} games...", num_games);
+        chess_game::run_sg_vs_sg_training_automated(num_games);
+        return; // Exit when done
+    }
+
+    // --- Standard Interactive Menu (Only shows if no args are passed) ---
     println!("╔══════════════════════════════════════════════════════════════════════╗");
     println!("║                            SOULGAIN ACTIVE                           ║");
     println!("╚══════════════════════════════════════════════════════════════════════╝");

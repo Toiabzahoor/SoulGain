@@ -726,7 +726,92 @@ pub fn run_sg_vs_sg_training() {
             g, actual_length, final_avg_surprise, pruned_features);
     }
 }
+// 🌸 THE AUTOMATED HEADLESS VERSION (No Stdin!)
+pub fn run_sg_vs_sg_training_automated(num_games: usize) {
+    println!("\n🌸 HEADLESS SANDBOX START: {} Games | 128 Eyes", num_games);
+    
+    let mut oracle = Oracle::new(); 
+    let brain = SoulBrain::load_binary("soul_memory.bin", 128);
+    let brain_arc = Arc::new(Mutex::new(brain));
+    let policy = ProgrammaticChessPolicy { brain: brain_arc.clone() };
 
+    for g in 1..=num_games {
+        let mut game = ChessWorld { 
+            board: Board::default(), history: vec![Board::default().get_hash()], brain: brain_arc.clone() 
+        };
+        
+        let mut total_surprisal = 0.0;
+        let mut feature_histories: Vec<Vec<i64>> = vec![Vec::new(); 128];
+
+        let config = ReasoningConfig::<WrappedMove> {
+            simulations: 8000, max_depth: 16, max_program_len: 8, max_ops_per_candidate: 8,
+            exploration_constant: 1.5, length_penalty: 0.0, loop_penalty: 1.0,
+            action_space: vec![], arena_capacity: 2_000_000,
+        };
+
+        while !game.is_terminal() && game.history.len() < 200 { 
+            let (_, oracle_eval_raw) = oracle.consult(&game.board);
+            let side_to_move = game.board.side_to_move();
+            
+            let oracle_eval = if side_to_move == Color::White {
+                (oracle_eval_raw as f32 / 100.0).clamp(-1.0, 1.0)
+            } else {
+                (-oracle_eval_raw as f32 / 100.0).clamp(-1.0, 1.0)
+            };
+
+            {
+                let mut b = brain_arc.lock().unwrap();
+                let base_inputs = extract_topology_features(&game.board);
+                let (signature, feelings) = b.senses.get_sensory_signature(&base_inputs, None);
+                
+                for (i, &feeling) in feelings.iter().enumerate() {
+                    if i < feature_histories.len() { feature_histories[i].push(feeling); }
+                }
+
+                let current_eval = b.memory.evaluate_context(signature, &feelings);
+                total_surprisal += (oracle_eval - current_eval).abs();
+                b.memory.learn_context(signature, &feelings, oracle_eval);
+            }
+
+            let mut local_config = config.clone();
+            local_config.action_space = MoveGen::new_legal(&game.board).map(WrappedMove).collect();
+            let (best_path, _) = solve_universal_with_stats(&game, &local_config, &policy);
+            let chosen_move = best_path.and_then(|p| p.first().copied()).expect("No legal moves");
+            game.step(chosen_move).unwrap();
+        }
+
+        // 🌸 Hybrid Reservoir Pruning every 20 games
+        if g % 20 == 0 {
+            let mut b = brain_arc.lock().unwrap();
+            let mut kill_list = Vec::new();
+            let mut unique_counts = Vec::new();
+            for i in 0..128 {
+                let history = &feature_histories[i];
+                if history.is_empty() { continue; }
+                let mut unique_vals = history.clone();
+                unique_vals.sort(); unique_vals.dedup();
+                unique_counts.push((i, unique_vals.len()));
+                if unique_vals.len() <= 1 { kill_list.push(i); }
+            }
+            kill_list.sort(); kill_list.dedup(); kill_list.truncate(1);
+            for &idx in kill_list.iter().rev() {
+                b.senses.features.remove(idx);
+                b.senses.add_random_hypothesis();
+            }
+            b.save_and_merge("soul_memory.bin");
+            println!("💾 Auto-Save at Game {}", g);
+        }
+
+        let actual_length = game.history.len() as f32;
+        let avg_surprise = total_surprisal / actual_length.max(1.0);
+        println!("🤖 Progress: {}/{} | Len: {} | Surprise: {:.4}", g, num_games, actual_length, avg_surprise);
+    }
+
+    // Final Save
+    let b = brain_arc.lock().unwrap();
+    b.save_and_merge("soul_memory.bin");
+    println!("✅ Automated Training Complete.");
+}
 // ─────────────────────────────────────────────────────────────────────────────
 // 🌸 MODE 4: SOULGAIN VS SOULGAIN EXHIBITION
 // ─────────────────────────────────────────────────────────────────────────────
