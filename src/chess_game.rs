@@ -735,6 +735,9 @@ pub fn run_sg_vs_sg_training_automated(num_games: usize) {
     let brain_arc = Arc::new(Mutex::new(brain));
     let policy = ProgrammaticChessPolicy { brain: brain_arc.clone() };
 
+    // We track this outside the loop so we can display it every game
+    let mut last_pruned_count = 0;
+
     for g in 1..=num_games {
         let mut game = ChessWorld { 
             board: Board::default(), history: vec![Board::default().get_hash()], brain: brain_arc.clone() 
@@ -752,22 +755,14 @@ pub fn run_sg_vs_sg_training_automated(num_games: usize) {
         while !game.is_terminal() && game.history.len() < 200 { 
             let (_, oracle_eval_raw) = oracle.consult(&game.board);
             let side_to_move = game.board.side_to_move();
-            
-            let oracle_eval = if side_to_move == Color::White {
-                (oracle_eval_raw as f32 / 100.0).clamp(-1.0, 1.0)
-            } else {
-                (-oracle_eval_raw as f32 / 100.0).clamp(-1.0, 1.0)
-            };
+            let oracle_eval = if side_to_move == Color::White { (oracle_eval_raw as f32 / 100.0).clamp(-1.0, 1.0) } 
+                               else { (-oracle_eval_raw as f32 / 100.0).clamp(-1.0, 1.0) };
 
             {
                 let mut b = brain_arc.lock().unwrap();
                 let base_inputs = extract_topology_features(&game.board);
                 let (signature, feelings) = b.senses.get_sensory_signature(&base_inputs, None);
-                
-                for (i, &feeling) in feelings.iter().enumerate() {
-                    if i < feature_histories.len() { feature_histories[i].push(feeling); }
-                }
-
+                for (i, &feeling) in feelings.iter().enumerate() { feature_histories[i].push(feeling); }
                 let current_eval = b.memory.evaluate_context(signature, &feelings);
                 total_surprisal += (oracle_eval - current_eval).abs();
                 b.memory.learn_context(signature, &feelings, oracle_eval);
@@ -776,38 +771,46 @@ pub fn run_sg_vs_sg_training_automated(num_games: usize) {
             let mut local_config = config.clone();
             local_config.action_space = MoveGen::new_legal(&game.board).map(WrappedMove).collect();
             let (best_path, _) = solve_universal_with_stats(&game, &local_config, &policy);
-            let chosen_move = best_path.and_then(|p| p.first().copied()).expect("No legal moves");
+            let chosen_move = best_path.and_then(|p| p.first().copied()).expect("No moves");
             game.step(chosen_move).unwrap();
         }
 
-        // 🌸 Hybrid Reservoir Pruning every 20 games
+        // 🌸 Patient Hybrid Pruning every 20 games
         if g % 20 == 0 {
             let mut b = brain_arc.lock().unwrap();
             let mut kill_list = Vec::new();
             let mut unique_counts = Vec::new();
             for i in 0..128 {
                 let history = &feature_histories[i];
-                if history.is_empty() { continue; }
                 let mut unique_vals = history.clone();
                 unique_vals.sort(); unique_vals.dedup();
                 unique_counts.push((i, unique_vals.len()));
                 if unique_vals.len() <= 1 { kill_list.push(i); }
             }
-            kill_list.sort(); kill_list.dedup(); kill_list.truncate(1);
+            kill_list.sort(); kill_list.dedup(); 
+            
+            // We only take 1 to keep it stable
+            kill_list.truncate(1);
+            last_pruned_count = kill_list.len(); 
+
             for &idx in kill_list.iter().rev() {
                 b.senses.features.remove(idx);
                 b.senses.add_random_hypothesis();
             }
             b.save_and_merge("soul_memory.bin");
-            println!("💾 Auto-Save at Game {}", g);
+        } else {
+            // Reset the count for games where we didn't prune
+            last_pruned_count = 0;
         }
 
         let actual_length = game.history.len() as f32;
         let avg_surprise = total_surprisal / actual_length.max(1.0);
-        println!("🤖 Progress: {}/{} | Len: {} | Surprise: {:.4}", g, num_games, actual_length, avg_surprise);
+        
+        // 🌸 NOW it shows the pruned count in the console!
+        println!("🤖 Game {}/{} | Len: {} | Surprise: {:.4} | Pruned: {}", 
+            g, num_games, actual_length, avg_surprise, last_pruned_count);
     }
 
-    // Final Save
     let b = brain_arc.lock().unwrap();
     b.save_and_merge("soul_memory.bin");
     println!("✅ Automated Training Complete.");
