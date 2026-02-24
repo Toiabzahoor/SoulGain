@@ -4,6 +4,7 @@ pub mod memory;
 pub mod plasticity;
 pub mod types;
 pub mod vm;
+pub mod abilities;
 // Add this line to src/lib.rs
 pub mod hypothesis;
 pub mod intuition;
