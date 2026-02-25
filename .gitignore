@@ -12,6 +12,7 @@ Cargo.lock.orig
 .idea/
 *.swp
 *~
+/chessData.csv.zip
 /stockfish
 # --- OS Generated Files ---
 .DS_Store

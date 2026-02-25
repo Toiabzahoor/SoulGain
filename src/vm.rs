@@ -991,9 +991,5 @@ impl SoulGainVM {
         true
     }
 
-    fn find_next_opcode(&self, target_opcode: i64) -> Option<usize> {
-        self.program.iter().enumerate().find_map(|(idx, &raw)| {
-            if raw == target_opcode as f64 { Some(idx) } else { None }
-        })
-    }
+    
 }
