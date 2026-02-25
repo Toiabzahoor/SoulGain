@@ -5,7 +5,8 @@
 **/*.rs.bk
 # Created by Cargo when projects are renamed
 Cargo.lock.orig
-
+/data.zip
+/chess_data.bin
 # --- IDEs and Editors ---
 .vscode/
 .idea/
