@@ -1,38 +1,60 @@
-mod tictactoe;
-mod chess_game;
+// main.rs
 
-use std::io::{self, Write};
+use std::io::{self, BufRead};
+
+mod tictactoe;  // assuming your soulgain crate/module is available
+
+// If the code you showed is in a separate file/module, import it like this:
+// mod tictactoe;
+use tictactoe::{run_interactive, run_autoplay};
+
+           // adjust path if needed
+// or if everything is in one big file:
+// (then you don't need the above line)
 
 fn main() {
-    println!("╔══════════════════════════════════════════════════════════════════════╗");
-    println!("║                           SOULGAIN ACTIVE                            ║");
-    println!("╚══════════════════════════════════════════════════════════════════════╝");
+    println!("=====================================");
+    println!("      SoulGain Tic-Tac-Toe v0.1      ");
+    println!("  True Negamax + Plasticity Learning  ");
+    println!("=====================================\n");
 
     loop {
-        println!("\nCHOOSE MODULE:");
-        println!("  [1] Convert Kaggle CSV to Bincode (One-time Setup)");
-        println!("  [2] Train from Bincode Dataset (Lightning Fast)");
-        println!("  [3] Train from Stockfish (The Forge - Live Oracle)");
-        println!("  [4] Play: SoulGain vs Stockfish (MCTS Navigator)");
-        println!("  [5] Play: SoulGain vs SoulGain (MCTS Navigator)");
-        println!("  [6] Exit");
-        print!("\n> ");
-        io::stdout().flush().unwrap();
+        println!("\nChoose mode:");
+        println!("  [1]  Play against AI (you = O)");
+        println!("  [2]  Self-play training (AI vs AI)");
+        println!("  [q]  Quit");
+        print!("\n→ ");
 
-        let mut input = String::new();
-        io::stdin().read_line(&mut input).unwrap();
+        let stdin = io::stdin();
+        let mut line = String::new();
+        stdin.lock().read_line(&mut line).expect("Failed to read line");
 
-        match input.trim() {
-            "1" => {
-                println!("Enter path to Kaggle CSV:");
-                let mut path = String::new();
-                io::stdin().read_line(&mut path).unwrap();
-                chess_game::convert_kaggle_to_bincode(path.trim(), "chess_data.bin");
-            },
-            "2" => chess_game::train_from_bincode("chess_data.bin"),
-            "5" => chess_game::play_self(),
-            "6" => break,
-            _ => println!("Invalid option."),
+        let choice = line.trim().to_lowercase();
+
+        match choice.as_str() {
+            "1" | "p" | "play" => {
+                println!("\nStarting interactive game...\n");
+                run_interactive();
+            }
+
+            "2" | "s" | "self" | "train" => {
+                println!("\nStarting self-play training...\n");
+                run_autoplay();
+            }
+
+            "q" | "quit" | "exit" => {
+                println!("Goodbye! 🧠");
+                break;
+            }
+
+            _ => {
+                println!("Invalid choice. Please enter 1, 2 or q.");
+            }
         }
     }
 }
+
+// If you put run_interactive() and run_autoplay() directly in main.rs,
+// just keep them here (after the main function).
+
+// Otherwise, move them to lib.rs / tictactoe.rs and import as shown above.
