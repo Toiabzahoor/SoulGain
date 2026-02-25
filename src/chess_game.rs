@@ -1,40 +1,43 @@
 use std::io::{self, Write, BufRead, BufReader};
-use std::fs::File;
+use std::fs::{File, OpenOptions}; 
 use std::process::{Command, Stdio, Child};
 use std::sync::{Arc, Mutex};
-use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
-use std::collections::hash_map::DefaultHasher;
+
+use rustc_hash::{FxHashMap, FxHasher}; 
 
 use chess::{Board, BoardStatus, ChessMove, MoveGen, Piece, Color, Square};
 use serde::{Deserialize, Serialize};
-use rand::Rng; // 🌸 True randomness for evolution!
+use rand::Rng; 
 
 use soulgain::alphazero::{
     CognitivePolicy, ReasoningConfig, UniversalWorld, solve_universal_with_stats
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// THE ORACLE WRAPPER (Depth 10 Stress Test 🌸)
+// THE ORACLE WRAPPER 
 // ─────────────────────────────────────────────────────────────────────────────
 
 struct Oracle {
     process: Child,
-    cache: HashMap<u64, (String, f64)>, 
+    cache: FxHashMap<u64, (String, f64)>, 
 }
 
 impl Oracle {
-    fn new() -> Self {
+    fn new(skill_level: i32) -> Self {
         let child = Command::new("./stockfish_oracle") 
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .spawn()
             .expect("Failed to start stockfish_oracle");
         
-        let mut oracle = Self { process: child, cache: HashMap::with_capacity(100_000) };
+        let mut oracle = Self { 
+            process: child, 
+            cache: FxHashMap::with_capacity_and_hasher(100_000, Default::default()) 
+        };
         oracle.send("uci");
         oracle.send("isready");
-        oracle.send("setoption name Skill Level value 20"); 
+        oracle.send(&format!("setoption name Skill Level value {}", skill_level)); 
         oracle
     }
 
@@ -52,8 +55,7 @@ impl Oracle {
 
         let fen = format!("{}", board);
         self.send(&format!("position fen {}", fen));
-        
-        self.send("go depth 12"); 
+        self.send("go depth 5"); 
 
         let mut final_score = 0.0;
         let mut best_move = String::new();
@@ -65,7 +67,7 @@ impl Oracle {
                     let parts: Vec<&str> = line.split_whitespace().collect();
                     if let Some(pos) = parts.iter().position(|&r| r == "cp") {
                         if let Some(val) = parts.get(pos + 1).and_then(|v| v.parse::<f64>().ok()) {
-                            final_score = val / 100.0;
+                            final_score = val / 100.0; 
                         }
                     }
                 } else if line.contains("score mate") {
@@ -117,48 +119,44 @@ impl UniversalWorld for ChessWorld {
     }
     
     fn evaluate_path(&self, path: &[Self::Action]) -> (f32, u64) {
-        let mut sim = self.clone();
-        for m in path { if sim.step(*m).is_err() { break; } }
+        let mut sim_board = self.board.clone();
+        for m in path { sim_board = sim_board.make_move_new(m.0); }
         
-        let brain = self.brain.lock().unwrap();
-        let base_inputs = extract_topology_features(&sim.board);
+        let mut brain = self.brain.lock().unwrap();
+        let hash = sim_board.get_hash();
+
+        let (signature, feelings, _) = if let Some(cached) = brain.sensory_cache.get(&hash) {
+            cached.clone()
+        } else {
+            let base_inputs = extract_topology_features(&sim_board);
+            let result = brain.senses.get_sensory_signature(&base_inputs, None);
+            brain.sensory_cache.insert(hash, result.clone());
+            result
+        };
         
-        let (signature, feelings) = brain.senses.get_sensory_signature(&base_inputs, None);
         let score = brain.memory.evaluate_context(signature, &feelings);
-        
         (score, path.len() as u64)
     }
 }
 
-// 🌸 REWRITTEN: 100% Raw Board Geometry mapped strictly to floats
-fn extract_topology_features(board: &Board) -> Vec<f32> {
-    let mut features = Vec::with_capacity(65);
-    
+fn extract_topology_features(board: &Board) -> [f32; 65] {
+    let mut features = [0.0; 65];
     for i in 0..64 {
-        let sq = unsafe { Square::new(i) };
-        let val = match board.piece_on(sq) {
-            Some(p) => {
-                let type_val = match p {
-                    Piece::Pawn => 1.0, 
-                    Piece::Knight => 2.0,
-                    Piece::Bishop => 3.0,
-                    Piece::Rook => 4.0, 
-                    Piece::Queen => 5.0, 
-                    Piece::King => 6.0,
-                };
-                if board.color_on(sq) == Some(Color::White) { type_val } else { -type_val }
-            },
-            None => 0.0,
-        };
-        features.push(val);
+        let sq = unsafe { Square::new(i as u8) }; 
+        if let Some(p) = board.piece_on(sq) {
+            let type_val = match p {
+                Piece::Pawn => 1.0, Piece::Knight => 2.0, Piece::Bishop => 3.0,
+                Piece::Rook => 4.0, Piece::Queen => 5.0, Piece::King => 6.0,
+            };
+            features[i] = if board.color_on(sq) == Some(Color::White) { type_val } else { -type_val };
+        }
     }
-    
-    features.push(if board.side_to_move() == Color::White { 1.0 } else { -1.0 });
+    features[64] = if board.side_to_move() == Color::White { 1.0 } else { -1.0 };
     features
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// THE BIOLOGICAL VISUAL CORTEX (Custom PushGP Eyes) 🌸
+// THE COUNCIL OF MINISTERS (Biological Visual Cortex) 
 // ─────────────────────────────────────────────────────────────────────────────
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -167,6 +165,7 @@ pub enum EyeOp {
     Abs, Min, Max, Sign,
     Pick, Drop,
     PushConst(f32),
+    Read, 
     Halt,
 }
 
@@ -174,41 +173,60 @@ pub enum EyeOp {
 pub enum EyeStatus { Ok, Halt }
 
 pub struct EyeMind {
-    pub stack: Vec<f32>,
+    pub stack: [f32; 256], 
+    pub stack_ptr: usize,
     pub ip: usize,
 }
 
 impl EyeMind {
-    pub fn new() -> Self { Self { stack: Vec::with_capacity(256), ip: 0 } }
+    pub fn new() -> Self { Self { stack: [0.0; 256], stack_ptr: 0, ip: 0 } }
     
-    pub fn reset(&mut self, inputs: &[f32]) {
-        self.stack.clear();
-        self.stack.extend_from_slice(inputs);
-        self.ip = 0;
+    #[inline(always)]
+    pub fn push(&mut self, val: f32) {
+        if self.stack_ptr < 256 {
+            self.stack[self.stack_ptr] = val;
+            self.stack_ptr += 1;
+        }
     }
 
-    pub fn step(&mut self, op: &EyeOp) -> EyeStatus {
+    #[inline(always)]
+    pub fn pop(&mut self) -> Option<f32> {
+        if self.stack_ptr > 0 {
+            self.stack_ptr -= 1;
+            Some(self.stack[self.stack_ptr])
+        } else {
+            None
+        }
+    }
+
+    pub fn step(&mut self, op: &EyeOp, board_box: &[f32; 65]) -> EyeStatus {
         self.ip += 1;
         match op {
-            EyeOp::Add => { if let (Some(b), Some(a)) = (self.stack.pop(), self.stack.pop()) { self.stack.push(a + b); } }
-            EyeOp::Sub => { if let (Some(b), Some(a)) = (self.stack.pop(), self.stack.pop()) { self.stack.push(a - b); } }
-            EyeOp::Mul => { if let (Some(b), Some(a)) = (self.stack.pop(), self.stack.pop()) { self.stack.push(a * b); } }
-            EyeOp::Div => { if let (Some(b), Some(a)) = (self.stack.pop(), self.stack.pop()) { self.stack.push(if b.abs() > 0.001 { a / b } else { 0.0 }); } }
-            EyeOp::Gt => { if let (Some(b), Some(a)) = (self.stack.pop(), self.stack.pop()) { self.stack.push(if a > b { 1.0 } else { -1.0 }); } }
-            EyeOp::Abs => { if let Some(a) = self.stack.pop() { self.stack.push(a.abs()); } }
-            EyeOp::Min => { if let (Some(b), Some(a)) = (self.stack.pop(), self.stack.pop()) { self.stack.push(a.min(b)); } }
-            EyeOp::Max => { if let (Some(b), Some(a)) = (self.stack.pop(), self.stack.pop()) { self.stack.push(a.max(b)); } }
-            EyeOp::Sign => { if let Some(a) = self.stack.pop() { self.stack.push(a.signum()); } }
-            EyeOp::Drop => { self.stack.pop(); }
-            EyeOp::PushConst(val) => { self.stack.push(*val); }
+            EyeOp::Add => { if let (Some(b), Some(a)) = (self.pop(), self.pop()) { self.push(a + b); } }
+            EyeOp::Sub => { if let (Some(b), Some(a)) = (self.pop(), self.pop()) { self.push(a - b); } }
+            EyeOp::Mul => { if let (Some(b), Some(a)) = (self.pop(), self.pop()) { self.push(a * b); } }
+            EyeOp::Div => { if let (Some(b), Some(a)) = (self.pop(), self.pop()) { self.push(if b.abs() > 0.001 { a / b } else { 0.0 }); } }
+            EyeOp::Gt => { if let (Some(b), Some(a)) = (self.pop(), self.pop()) { self.push(if a > b { 1.0 } else { -1.0 }); } }
+            EyeOp::Abs => { if let Some(a) = self.pop() { self.push(a.abs()); } }
+            EyeOp::Min => { if let (Some(b), Some(a)) = (self.pop(), self.pop()) { self.push(a.min(b)); } }
+            EyeOp::Max => { if let (Some(b), Some(a)) = (self.pop(), self.pop()) { self.push(a.max(b)); } }
+            EyeOp::Sign => { if let Some(a) = self.pop() { self.push(a.signum()); } }
+            EyeOp::Drop => { self.pop(); }
+            EyeOp::PushConst(val) => { self.push(*val); }
             EyeOp::Pick => {
-                if let Some(idx_f) = self.stack.pop() {
-                    let len = self.stack.len();
+                if let Some(idx_f) = self.pop() {
+                    let len = self.stack_ptr;
                     if len > 0 {
                         let actual_idx = (idx_f.abs() as usize) % len;
                         let val = self.stack[actual_idx];
-                        self.stack.push(val);
+                        self.push(val);
                     }
+                }
+            }
+            EyeOp::Read => { 
+                if let Some(idx_f) = self.pop() {
+                    let actual_idx = (idx_f.abs() as usize) % 65;
+                    self.push(board_box[actual_idx]);
                 }
             }
             EyeOp::Halt => return EyeStatus::Halt,
@@ -220,7 +238,7 @@ impl EyeMind {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DiscoveredFeature {
     pub snippet: Vec<EyeOp>,
-    pub reliability: f32,
+    pub cumulative_error: f32, // 🌸 Tracks how wrong the opinion is over 25 games
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -240,21 +258,14 @@ impl FeaturePool {
         let mut rng = rand::thread_rng();
         let mut snippet = Vec::new();
         
-        let len = rng.gen_range(10..=23); 
+        let len = rng.gen_range(10..=30); 
         for _ in 0..len {
-            let op = match rng.gen_range(0..12) {
-                0 => EyeOp::Add,
-                1 => EyeOp::Sub,
-                2 => EyeOp::Mul,
-                3 => EyeOp::Div,
-                4 => EyeOp::Gt,
-                5 => EyeOp::Abs,
-                6 => EyeOp::Min,
-                7 => EyeOp::Max,
-                8 => EyeOp::Sign,
-                9 => EyeOp::Pick,
-                10 => EyeOp::Drop,
+            let op = match rng.gen_range(0..13) { 
+                0 => EyeOp::Add, 1 => EyeOp::Sub, 2 => EyeOp::Mul, 3 => EyeOp::Div,
+                4 => EyeOp::Gt, 5 => EyeOp::Abs, 6 => EyeOp::Min, 7 => EyeOp::Max,
+                8 => EyeOp::Sign, 9 => EyeOp::Pick, 10 => EyeOp::Drop,
                 11 => EyeOp::PushConst(rng.gen_range(-6.0_f32..=6.0_f32).round()), 
+                12 => EyeOp::Read, 
                 _ => unreachable!(),
             };
             snippet.push(op);
@@ -262,58 +273,59 @@ impl FeaturePool {
         snippet.push(EyeOp::Halt);
 
         if self.features.len() < self.max_features {
-            self.features.push(DiscoveredFeature { snippet, reliability: 1.0 });
+            self.features.push(DiscoveredFeature { snippet, cumulative_error: 0.0 });
         }
     }
 
-    // 🌸 128 EYES HASH SIGNATURE: Safely condenses the massive vision into a single u64
-    pub fn get_sensory_signature(&self, base_inputs: &[f32], ignore_index: Option<usize>) -> (u64, Vec<i64>) {
+    pub fn get_sensory_signature(&self, board_box: &[f32; 65], ignore_index: Option<usize>) -> (u64, Vec<i64>, Vec<f32>) {
         let mut feelings = Vec::with_capacity(128);
+        let mut opinions = Vec::with_capacity(128);
         
         for (i, feature) in self.features.iter().take(128).enumerate() {
             if Some(i) == ignore_index { continue; }
 
             let mut mind = EyeMind::new();
-            mind.reset(base_inputs);
             
             let mut step_count = 0;
             while mind.ip < feature.snippet.len() && step_count < 64 {
-                if mind.step(&feature.snippet[mind.ip]) == EyeStatus::Halt { break; }
+                if mind.step(&feature.snippet[mind.ip], board_box) == EyeStatus::Halt { break; }
                 step_count += 1;
             }
 
-            let output_val = mind.stack.last().copied().unwrap_or(0.0);
-            let discrete_feeling = (output_val * 2.0).round() as i64;
+            let opinion = if mind.stack_ptr > 0 { mind.stack[mind.stack_ptr - 1] } else { 0.0 };
+            opinions.push(opinion);
+            
+            let discrete_feeling = (opinion * 2.0).round() as i64;
             feelings.push(discrete_feeling); 
         }
 
-        let mut hasher = DefaultHasher::new();
+        let mut hasher = FxHasher::default();
         feelings.hash(&mut hasher);
         let signature = hasher.finish();
 
-        (signature, feelings)
+        (signature, feelings, opinions)
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TRUE EPISODIC MEMORY GRAPH (With the Universal Amygdala! 🌸)
+// TRUE EPISODIC MEMORY GRAPH 
 // ─────────────────────────────────────────────────────────────────────────────
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EpisodicMemory {
-    pub experiences: HashMap<u64, f32>, // 🌸 Changed to u64 to support the 128-eye Hash!
-    pub visit_counts: HashMap<u64, u32>,
-    pub bucket_values: HashMap<u64, f32>,
-    pub bucket_counts: HashMap<u64, u32>,
+    pub experiences: FxHashMap<u64, f32>, 
+    pub visit_counts: FxHashMap<u64, u32>,
+    pub bucket_values: FxHashMap<u64, f32>,
+    pub bucket_counts: FxHashMap<u64, u32>,
 }
 
 impl EpisodicMemory {
     pub fn new() -> Self {
         Self {
-            experiences: HashMap::new(),
-            visit_counts: HashMap::new(),
-            bucket_values: HashMap::new(),
-            bucket_counts: HashMap::new(),
+            experiences: FxHashMap::default(),
+            visit_counts: FxHashMap::default(),
+            bucket_values: FxHashMap::default(),
+            bucket_counts: FxHashMap::default(),
         }
     }
 
@@ -338,6 +350,11 @@ impl EpisodicMemory {
         } else {
             0.0 
         }
+    }
+
+    pub fn get_feeling_belief(&self, feeling: i64) -> f32 {
+        let bucket_key = feeling as u64 & 0xFFFFFFFF;
+        *self.bucket_values.get(&bucket_key).unwrap_or(&0.0)
     }
 
     pub fn learn_context(&mut self, signature: u64, feelings: &[i64], target_eval: f32) {
@@ -367,6 +384,8 @@ impl EpisodicMemory {
 pub struct SoulBrain {
     pub senses: FeaturePool,
     pub memory: EpisodicMemory,
+    #[serde(skip)]
+    pub sensory_cache: FxHashMap<u64, (u64, Vec<i64>, Vec<f32>)>, 
 }
 
 impl SoulBrain {
@@ -376,12 +395,14 @@ impl SoulBrain {
                 SoulBrain {
                     senses: self.senses.clone(),
                     memory: EpisodicMemory::new(),
+                    sensory_cache: FxHashMap::default(),
                 }
             })
         } else {
             SoulBrain {
                 senses: self.senses.clone(),
                 memory: EpisodicMemory::new(),
+                sensory_cache: FxHashMap::default(),
             }
         };
 
@@ -412,21 +433,21 @@ impl SoulBrain {
 
     pub fn load_binary(path: &str, max_features: usize) -> Self {
         if let Ok(file) = File::open(path) {
-            match serde_json::from_reader(file) {
+            match serde_json::from_reader::<_, SoulBrain>(file) {
                 Ok(brain) => return brain,
                 Err(_) => {
-                    println!("🌱 Reincarnating Soul into 128-Eye Architecture. Starting fresh memory!");
                     SoulBrain {
                         senses: FeaturePool::new(max_features),
                         memory: EpisodicMemory::new(),
+                        sensory_cache: FxHashMap::default(),
                     }
                 }
             }
         } else {
-            println!("🌱 No previous memory found. Birthing new Soul...");
             SoulBrain {
                 senses: FeaturePool::new(max_features),
                 memory: EpisodicMemory::new(),
+                sensory_cache: FxHashMap::default(),
             }
         }
     }
@@ -438,9 +459,18 @@ struct ProgrammaticChessPolicy {
 
 impl CognitivePolicy<Board, WrappedMove> for ProgrammaticChessPolicy {
     fn evaluate(&self, state: &Board) -> f32 {
-        let b = self.brain.lock().unwrap(); 
-        let base_inputs = extract_topology_features(state);
-        let (sig, feelings) = b.senses.get_sensory_signature(&base_inputs, None);
+        let mut b = self.brain.lock().unwrap(); 
+        let hash = state.get_hash();
+
+        let (sig, feelings, _) = if let Some(cached) = b.sensory_cache.get(&hash) {
+            cached.clone()
+        } else {
+            let base_inputs = extract_topology_features(state);
+            let result = b.senses.get_sensory_signature(&base_inputs, None);
+            b.sensory_cache.insert(hash, result.clone());
+            result
+        };
+        
         b.memory.evaluate_context(sig, &feelings)
     }
 
@@ -457,20 +487,42 @@ impl CognitivePolicy<Board, WrappedMove> for ProgrammaticChessPolicy {
     }
 }
 
+struct GameMoment {
+    fen: String,
+    signature: u64,
+    feelings: Vec<i64>,
+    raw_opinions: Vec<f32>,
+    oracle_eval: f32,
+    current_eval: f32,
+    surprise: f32,
+}
+
+fn log_trauma_to_file(mode: &str, game_num: usize, trauma_moments: &[GameMoment]) {
+    if let Ok(mut file) = OpenOptions::new().create(true).append(true).open("soul_trauma_logs.txt") {
+        let _ = writeln!(file, "\n==================================================");
+        let _ = writeln!(file, "🌸 {} | Game {}", mode, game_num);
+        let _ = writeln!(file, "==================================================");
+        for (i, m) in trauma_moments.iter().enumerate() {
+            let _ = writeln!(file, "Trauma #{} ── Surprise Level: {:.4}", i + 1, m.surprise);
+            let _ = writeln!(file, "Truth (Oracle): {:>6.2} | Guess (SoulGain): {:>6.2}", m.oracle_eval, m.current_eval);
+            let _ = writeln!(file, "FEN: {}", m.fen);
+            let _ = writeln!(file, "--------------------------------------------------");
+        }
+    }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
-// 🌸 MODE 1: SOULGAIN VS STOCKFISH TRAINING (128 EYES / HYBRID PRUNING)
+// 🌸 MODE 1: SOULGAIN VS STOCKFISH TRAINING 
 // ─────────────────────────────────────────────────────────────────────────────
 
 pub fn run_autoplay() {
-    println!("\n🌸 EVOLUTIONARY SURVIVAL LOOP START (128 Eyes | Hybrid Reservoir)");
+    println!("\n🌸 EVOLUTIONARY SURVIVAL LOOP START (Council of Ministers)");
     
-    let mut oracle = Oracle::new(); 
-    let brain = SoulBrain::load_binary("soul_memory.bin", 128); // 🌸 Birthing 128 eyes!
+    // 🌸 Lowered Stockfish skill so SoulGain gets a chance to breathe
+    let mut oracle = Oracle::new(5); 
+    let brain = SoulBrain::load_binary("soul_memory.bin", 128); 
     let brain_arc = Arc::new(Mutex::new(brain));
     let policy = ProgrammaticChessPolicy { brain: brain_arc.clone() };
-
-    const TARGET_SURVIVAL: f32 = 40.0;
-    const TRAUMA_WEIGHT: f32 = 0.5;
 
     print!("Games to play: "); 
     io::stdout().flush().unwrap();
@@ -483,12 +535,12 @@ pub fn run_autoplay() {
             board: Board::default(), history: vec![Board::default().get_hash()], brain: brain_arc.clone() 
         };
         let soul_color = if g % 2 == 1 { Color::White } else { Color::Black };
-        let mut total_surprisal = 0.0;
-        let mut peak_eval: f32 = -1.0; 
-        let mut feature_histories: Vec<Vec<i64>> = vec![Vec::new(); 128]; // 🌸 Tracking all 128!
+        let mut peak_eval: f32 = -100.0; 
+        
+        let mut game_history_moments: Vec<GameMoment> = Vec::new();
 
         let config = ReasoningConfig::<WrappedMove> {
-            simulations: 8000, max_depth: 16, max_program_len: 8, max_ops_per_candidate: 8,
+            simulations: 400, max_depth: 10, max_program_len: 8, max_ops_per_candidate: 8,
             exploration_constant: 1.5, length_penalty: 0.0, loop_penalty: 1.0,
             action_space: vec![], arena_capacity: 2_000_000,
         };
@@ -506,22 +558,29 @@ pub fn run_autoplay() {
                 
                 let mut b = brain_arc.lock().unwrap();
                 let base_inputs = extract_topology_features(&game.board);
-                let (signature, feelings) = b.senses.get_sensory_signature(&base_inputs, None);
                 
-                for (i, &feeling) in feelings.iter().enumerate() {
-                    if i < feature_histories.len() { feature_histories[i].push(feeling); }
-                }
-
+                // 🌸 We grab the raw opinions to evaluate the ministers!
+                let (signature, feelings, raw_opinions) = b.senses.get_sensory_signature(&base_inputs, None);
+                
                 let current_eval = b.memory.evaluate_context(signature, &feelings);
-                let oracle_eval = if soul_color == Color::White {
-                    (oracle_eval_raw as f32 / 100.0).clamp(-1.0, 1.0)
-                } else {
-                    (-oracle_eval_raw as f32 / 100.0).clamp(-1.0, 1.0)
+                
+                let side_to_move = game.board.side_to_move();
+                let absolute_eval = if side_to_move == Color::White { 
+                    (oracle_eval_raw as f32).clamp(-100.0, 100.0) 
+                } else { 
+                    (-oracle_eval_raw as f32).clamp(-100.0, 100.0) 
                 };
 
-                if oracle_eval > peak_eval { peak_eval = oracle_eval; }
-                total_surprisal += (oracle_eval - current_eval).abs();
-                b.memory.learn_context(signature, &feelings, oracle_eval);
+                let sg_perspective_eval = if soul_color == Color::White { absolute_eval } else { -absolute_eval };
+                if sg_perspective_eval > peak_eval { peak_eval = sg_perspective_eval; }
+                
+                let surprise = (absolute_eval - current_eval).abs();
+
+                let fen = format!("{}", game.board);
+                game_history_moments.push(GameMoment {
+                    fen, signature, feelings, raw_opinions,
+                    oracle_eval: absolute_eval, current_eval, surprise
+                });
 
                 if let Some(m) = MoveGen::new_legal(&game.board).find(|m| m.to_string() == sf_move_str) {
                     game.step(WrappedMove(m)).unwrap();
@@ -532,50 +591,47 @@ pub fn run_autoplay() {
             }
         }
 
-        let actual_length = game.history.len() as f32;
-        let prediction_surprise = total_surprisal / actual_length.max(1.0);
-        let survival_penalty = if actual_length < TARGET_SURVIVAL {
-            ((TARGET_SURVIVAL - actual_length) / TARGET_SURVIVAL) * TRAUMA_WEIGHT
-        } else { 0.0 };
-
-        let final_avg_surprise = prediction_surprise + survival_penalty;
+        game_history_moments.sort_by(|a, b| b.surprise.partial_cmp(&a.surprise).unwrap_or(std::cmp::Ordering::Equal));
+        let trauma_moments = game_history_moments.into_iter().take(5).collect::<Vec<_>>();
+        
+        log_trauma_to_file("SG vs Stockfish", g, &trauma_moments);
 
         let mut b = brain_arc.lock().unwrap();
         let mut pruned_features = 0;
 
-        // 🌸 HYBRID RESERVOIR PRUNING: Only prune every 10th game, and ONLY 1 eye max!
-        if g % 10 == 0 {
-            let mut kill_list = Vec::new();
-            let mut unique_counts = Vec::new();
-
-            for i in 0..128 {
-                if i >= b.senses.features.len() { break; }
-                let history = &feature_histories[i];
-                if history.is_empty() { continue; }
-                let mut unique_vals = history.clone();
-                unique_vals.sort(); unique_vals.dedup();
-                unique_counts.push((i, unique_vals.len()));
-                if unique_vals.len() <= 1 { kill_list.push(i); }
-            }
-
-            if kill_list.is_empty() && final_avg_surprise > 0.20 {
-                unique_counts.sort_by_key(|&(_, count)| count);
-                if let Some(&(idx, _)) = unique_counts.first() { kill_list.push(idx); }
-            }
-
-            kill_list.sort(); kill_list.dedup(); 
-            kill_list.truncate(1); // 🌸 Extreme stability limit!
+        for moment in &trauma_moments {
+            b.memory.learn_context(moment.signature, &moment.feelings, moment.oracle_eval);
             
-            for &idx in kill_list.iter().rev() {
-                b.senses.features.remove(idx);
-                b.senses.add_random_hypothesis();
-                pruned_features += 1;
+            // 🌸 CORRECT PRUNING LOGIC: Track minister inaccuracy over time based on their raw opinion
+            for (i, &opinion) in moment.raw_opinions.iter().enumerate() {
+                let error = (opinion - moment.oracle_eval).abs();
+                b.senses.features[i].cumulative_error += error; 
             }
         }
 
+        // 🌸 We only prune the worst minister every 25 games, giving them plenty of time to be evaluated!
+        if g % 25 == 0 {
+            let mut worst_idx = 0;
+            let mut max_err = -1.0;
+            for (i, feature) in b.senses.features.iter().enumerate() {
+                if feature.cumulative_error > max_err {
+                    max_err = feature.cumulative_error;
+                    worst_idx = i;
+                }
+            }
+
+            b.senses.features.remove(worst_idx);
+            b.senses.add_random_hypothesis();
+            pruned_features += 1;
+
+            // Reset everyone's error for the next 25-game horizon!
+            for f in &mut b.senses.features { f.cumulative_error = 0.0; }
+            b.sensory_cache.clear(); 
+        }
+
         b.save_and_merge("soul_memory.bin");
-        println!("Game {} | Len: {} | Peak: {:.2} | Surprise: {:.4} | Pruned: {}", 
-            g, actual_length, peak_eval, final_avg_surprise, pruned_features);
+        let actual_length = game.history.len();
+        println!("Game {} | Len: {} | Peak: {:.2} | Pruned: {}", g, actual_length, peak_eval, pruned_features);
     }
 }
 
@@ -588,12 +644,14 @@ pub fn run_self_match() {
     let brain = SoulBrain::load_binary("soul_memory.bin", 128); 
     let brain_arc = Arc::new(Mutex::new(brain));
     let policy = ProgrammaticChessPolicy { brain: brain_arc.clone() };
-    let mut oracle = Oracle::new();
+    let mut oracle = Oracle::new(10); 
     
     let mut game = ChessWorld { 
-        board: Board::default(), history: vec![Board::default().get_hash()], brain: brain_arc 
+        board: Board::default(), history: vec![Board::default().get_hash()], brain: brain_arc.clone() 
     };
     let soul_color = Color::White;
+
+    let mut game_history_moments: Vec<GameMoment> = Vec::new();
 
     while !game.is_terminal() {
         if game.board.side_to_move() == soul_color {
@@ -608,7 +666,23 @@ pub fn run_self_match() {
                 game.step(m).unwrap(); 
             } else { break; }
         } else {
-            let (sf_move_str, _) = oracle.consult(&game.board);
+            let (sf_move_str, oracle_eval_raw) = oracle.consult(&game.board);
+            
+            let mut b = brain_arc.lock().unwrap();
+            let base_inputs = extract_topology_features(&game.board);
+            let (signature, feelings, raw_opinions) = b.senses.get_sensory_signature(&base_inputs, None);
+            let current_eval = b.memory.evaluate_context(signature, &feelings);
+            
+            let side_to_move = game.board.side_to_move();
+            let absolute_eval = if side_to_move == Color::White { (oracle_eval_raw as f32).clamp(-100.0, 100.0) } 
+                                else { (-oracle_eval_raw as f32).clamp(-100.0, 100.0) };
+            
+            let surprise = (absolute_eval - current_eval).abs();
+            game_history_moments.push(GameMoment {
+                fen: format!("{}", game.board), signature, feelings, raw_opinions,
+                oracle_eval: absolute_eval, current_eval, surprise
+            });
+
             if let Some(m) = MoveGen::new_legal(&game.board).find(|m| m.to_string() == sf_move_str) {
                 println!("🐟 Stockfish: {}", sf_move_str);
                 game.step(WrappedMove(m)).unwrap();
@@ -616,6 +690,10 @@ pub fn run_self_match() {
         }
         println!("{}\n", game.board);
     }
+    game_history_moments.sort_by(|a, b| b.surprise.partial_cmp(&a.surprise).unwrap_or(std::cmp::Ordering::Equal));
+    let trauma_moments = game_history_moments.into_iter().take(5).collect::<Vec<_>>();
+    log_trauma_to_file("Exhibition vs Stockfish", 0, &trauma_moments);
+    
     println!("Match finished! Status: {:?}", game.board.status());
 }
 
@@ -624,9 +702,9 @@ pub fn run_self_match() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 pub fn run_sg_vs_sg_training() {
-    println!("\n🌸 SOULGAIN VS SOULGAIN: SELF-PLAY SANDBOX START (128 Eyes)");
+    println!("\n🌸 SOULGAIN VS SOULGAIN: SELF-PLAY SANDBOX START");
     
-    let mut oracle = Oracle::new(); 
+    let mut oracle = Oracle::new(5); 
     let brain = SoulBrain::load_binary("soul_memory.bin", 128);
     let brain_arc = Arc::new(Mutex::new(brain));
     
@@ -643,11 +721,10 @@ pub fn run_sg_vs_sg_training() {
             board: Board::default(), history: vec![Board::default().get_hash()], brain: brain_arc.clone() 
         };
         
-        let mut total_surprisal = 0.0;
-        let mut feature_histories: Vec<Vec<i64>> = vec![Vec::new(); 128]; // 🌸 Track all 128!
+        let mut game_history_moments: Vec<GameMoment> = Vec::new();
 
         let config = ReasoningConfig::<WrappedMove> {
-            simulations: 8000, max_depth: 16, max_program_len: 8, max_ops_per_candidate: 8,
+            simulations: 4000, max_depth: 12, max_program_len: 8, max_ops_per_candidate: 8,
             exploration_constant: 1.5, length_penalty: 0.0, loop_penalty: 1.0,
             action_space: vec![], arena_capacity: 2_000_000,
         };
@@ -656,24 +733,25 @@ pub fn run_sg_vs_sg_training() {
             let (_, oracle_eval_raw) = oracle.consult(&game.board);
             let side_to_move = game.board.side_to_move();
             
-            let oracle_eval = if side_to_move == Color::White {
-                (oracle_eval_raw as f32 / 100.0).clamp(-1.0, 1.0)
+            let absolute_eval = if side_to_move == Color::White {
+                (oracle_eval_raw as f32).clamp(-100.0, 100.0)
             } else {
-                (-oracle_eval_raw as f32 / 100.0).clamp(-1.0, 1.0)
+                (-oracle_eval_raw as f32).clamp(-100.0, 100.0)
             };
 
             {
                 let mut b = brain_arc.lock().unwrap();
                 let base_inputs = extract_topology_features(&game.board);
-                let (signature, feelings) = b.senses.get_sensory_signature(&base_inputs, None);
+                let (signature, feelings, raw_opinions) = b.senses.get_sensory_signature(&base_inputs, None);
                 
-                for (i, &feeling) in feelings.iter().enumerate() {
-                    if i < feature_histories.len() { feature_histories[i].push(feeling); }
-                }
-
                 let current_eval = b.memory.evaluate_context(signature, &feelings);
-                total_surprisal += (oracle_eval - current_eval).abs();
-                b.memory.learn_context(signature, &feelings, oracle_eval);
+                let surprise = (absolute_eval - current_eval).abs();
+
+                let fen = format!("{}", game.board);
+                game_history_moments.push(GameMoment {
+                    fen, signature, feelings, raw_opinions,
+                    oracle_eval: absolute_eval, current_eval, surprise
+                });
             }
 
             let mut local_config = config.clone();
@@ -685,69 +763,65 @@ pub fn run_sg_vs_sg_training() {
             game.step(chosen_move).unwrap();
         }
 
-        let actual_length = game.history.len() as f32;
-        let final_avg_surprise = total_surprisal / actual_length.max(1.0);
+        game_history_moments.sort_by(|a, b| b.surprise.partial_cmp(&a.surprise).unwrap_or(std::cmp::Ordering::Equal));
+        let trauma_moments = game_history_moments.into_iter().take(5).collect::<Vec<_>>();
+        
+        log_trauma_to_file("SG vs SG Sandbox", g, &trauma_moments);
 
         let mut b = brain_arc.lock().unwrap();
         let mut pruned_features = 0;
 
-        // 🌸 HYBRID RESERVOIR: Only check and prune every 10th game!
-        if g % 10 == 0 {
-            let mut kill_list = Vec::new();
-            let mut unique_counts = Vec::new();
-
-            for i in 0..128 {
-                if i >= b.senses.features.len() { break; }
-                let history = &feature_histories[i];
-                if history.is_empty() { continue; }
-                let mut unique_vals = history.clone();
-                unique_vals.sort(); unique_vals.dedup();
-                unique_counts.push((i, unique_vals.len()));
-                if unique_vals.len() <= 1 { kill_list.push(i); }
-            }
-
-            if kill_list.is_empty() && final_avg_surprise > 0.20 {
-                unique_counts.sort_by_key(|&(_, count)| count);
-                if let Some(&(idx, _)) = unique_counts.first() { kill_list.push(idx); }
-            }
-
-            kill_list.sort(); kill_list.dedup(); 
-            kill_list.truncate(1); // 🌸 Max 1 dead pixel replaced per sweep!
+        for moment in &trauma_moments {
+            b.memory.learn_context(moment.signature, &moment.feelings, moment.oracle_eval);
             
-            for &idx in kill_list.iter().rev() {
-                b.senses.features.remove(idx);
-                b.senses.add_random_hypothesis();
-                pruned_features += 1;
+            // 🌸 CORRECT PRUNING LOGIC
+            for (i, &opinion) in moment.raw_opinions.iter().enumerate() {
+                let error = (opinion - moment.oracle_eval).abs();
+                b.senses.features[i].cumulative_error += error; 
             }
         }
 
+        if g % 25 == 0 {
+            let mut worst_idx = 0;
+            let mut max_err = -1.0;
+            for (i, feature) in b.senses.features.iter().enumerate() {
+                if feature.cumulative_error > max_err {
+                    max_err = feature.cumulative_error;
+                    worst_idx = i;
+                }
+            }
+
+            b.senses.features.remove(worst_idx);
+            b.senses.add_random_hypothesis();
+            pruned_features += 1;
+
+            for f in &mut b.senses.features { f.cumulative_error = 0.0; }
+            b.sensory_cache.clear(); 
+        }
+
         b.save_and_merge("soul_memory.bin");
-        println!("Sandbox Game {} | Len: {} | Avg Surprise: {:.4} | Pruned: {}", 
-            g, actual_length, final_avg_surprise, pruned_features);
+        println!("Sandbox Game {} | Len: {} | Pruned: {}", g, game.history.len(), pruned_features);
     }
 }
-// 🌸 THE AUTOMATED HEADLESS VERSION (No Stdin!)
+
+// 🌸 THE AUTOMATED HEADLESS VERSION
 pub fn run_sg_vs_sg_training_automated(num_games: usize) {
-    println!("\n🌸 HEADLESS SANDBOX START: {} Games | 128 Eyes", num_games);
+    println!("\n🌸 HEADLESS SANDBOX START: {} Games", num_games);
     
-    let mut oracle = Oracle::new(); 
+    let mut oracle = Oracle::new(5); 
     let brain = SoulBrain::load_binary("soul_memory.bin", 128);
     let brain_arc = Arc::new(Mutex::new(brain));
     let policy = ProgrammaticChessPolicy { brain: brain_arc.clone() };
-
-    // We track this outside the loop so we can display it every game
-    let mut last_pruned_count = 0;
 
     for g in 1..=num_games {
         let mut game = ChessWorld { 
             board: Board::default(), history: vec![Board::default().get_hash()], brain: brain_arc.clone() 
         };
         
-        let mut total_surprisal = 0.0;
-        let mut feature_histories: Vec<Vec<i64>> = vec![Vec::new(); 128];
+        let mut game_history_moments: Vec<GameMoment> = Vec::new();
 
         let config = ReasoningConfig::<WrappedMove> {
-            simulations: 8000, max_depth: 16, max_program_len: 8, max_ops_per_candidate: 8,
+            simulations: 400, max_depth: 10, max_program_len: 8, max_ops_per_candidate: 8,
             exploration_constant: 1.5, length_penalty: 0.0, loop_penalty: 1.0,
             action_space: vec![], arena_capacity: 2_000_000,
         };
@@ -755,17 +829,26 @@ pub fn run_sg_vs_sg_training_automated(num_games: usize) {
         while !game.is_terminal() && game.history.len() < 200 { 
             let (_, oracle_eval_raw) = oracle.consult(&game.board);
             let side_to_move = game.board.side_to_move();
-            let oracle_eval = if side_to_move == Color::White { (oracle_eval_raw as f32 / 100.0).clamp(-1.0, 1.0) } 
-                               else { (-oracle_eval_raw as f32 / 100.0).clamp(-1.0, 1.0) };
+            
+            let absolute_eval = if side_to_move == Color::White { 
+                (oracle_eval_raw as f32).clamp(-100.0, 100.0) 
+            } else { 
+                (-oracle_eval_raw as f32).clamp(-100.0, 100.0) 
+            };
 
             {
                 let mut b = brain_arc.lock().unwrap();
                 let base_inputs = extract_topology_features(&game.board);
-                let (signature, feelings) = b.senses.get_sensory_signature(&base_inputs, None);
-                for (i, &feeling) in feelings.iter().enumerate() { feature_histories[i].push(feeling); }
+                let (signature, feelings, raw_opinions) = b.senses.get_sensory_signature(&base_inputs, None);
+                
                 let current_eval = b.memory.evaluate_context(signature, &feelings);
-                total_surprisal += (oracle_eval - current_eval).abs();
-                b.memory.learn_context(signature, &feelings, oracle_eval);
+                let surprise = (absolute_eval - current_eval).abs();
+
+                let fen = format!("{}", game.board);
+                game_history_moments.push(GameMoment {
+                    fen, signature, feelings, raw_opinions, 
+                    oracle_eval: absolute_eval, current_eval, surprise
+                });
             }
 
             let mut local_config = config.clone();
@@ -775,46 +858,44 @@ pub fn run_sg_vs_sg_training_automated(num_games: usize) {
             game.step(chosen_move).unwrap();
         }
 
-        // 🌸 Patient Hybrid Pruning every 20 games
-        if g % 20 == 0 {
-            let mut b = brain_arc.lock().unwrap();
-            let mut kill_list = Vec::new();
-            let mut unique_counts = Vec::new();
-            for i in 0..128 {
-                let history = &feature_histories[i];
-                let mut unique_vals = history.clone();
-                unique_vals.sort(); unique_vals.dedup();
-                unique_counts.push((i, unique_vals.len()));
-                if unique_vals.len() <= 1 { kill_list.push(i); }
-            }
-            kill_list.sort(); kill_list.dedup(); 
-            
-            // We only take 1 to keep it stable
-            kill_list.truncate(1);
-            last_pruned_count = kill_list.len(); 
+        game_history_moments.sort_by(|a, b| b.surprise.partial_cmp(&a.surprise).unwrap_or(std::cmp::Ordering::Equal));
+        let trauma_moments = game_history_moments.into_iter().take(5).collect::<Vec<_>>();
+        
+        log_trauma_to_file("HEADLESS Sandbox", g, &trauma_moments);
 
-            for &idx in kill_list.iter().rev() {
-                b.senses.features.remove(idx);
-                b.senses.add_random_hypothesis();
+        let mut b = brain_arc.lock().unwrap();
+        for moment in &trauma_moments {
+            b.memory.learn_context(moment.signature, &moment.feelings, moment.oracle_eval);
+            for (i, &opinion) in moment.raw_opinions.iter().enumerate() {
+                let error = (opinion - moment.oracle_eval).abs();
+                b.senses.features[i].cumulative_error += error; 
             }
-            b.save_and_merge("soul_memory.bin");
-        } else {
-            // Reset the count for games where we didn't prune
-            last_pruned_count = 0;
         }
 
-        let actual_length = game.history.len() as f32;
-        let avg_surprise = total_surprisal / actual_length.max(1.0);
-        
-        // 🌸 NOW it shows the pruned count in the console!
-        println!("🤖 Game {}/{} | Len: {} | Surprise: {:.4} | Pruned: {}", 
-            g, num_games, actual_length, avg_surprise, last_pruned_count);
-    }
+        let mut pruned = 0; 
+        if g % 25 == 0 {
+            let mut worst_idx = 0;
+            let mut max_err = -1.0;
+            for (i, feature) in b.senses.features.iter().enumerate() {
+                if feature.cumulative_error > max_err {
+                    max_err = feature.cumulative_error;
+                    worst_idx = i;
+                }
+            }
+            b.senses.features.remove(worst_idx);
+            b.senses.add_random_hypothesis();
+            pruned = 1;
 
-    let b = brain_arc.lock().unwrap();
-    b.save_and_merge("soul_memory.bin");
+            for f in &mut b.senses.features { f.cumulative_error = 0.0; }
+            b.sensory_cache.clear(); 
+        }
+
+        b.save_and_merge("soul_memory.bin");
+        println!("🤖 Game {}/{} | Len: {} | Pruned: {}", g, num_games, game.history.len(), pruned);
+    }
     println!("✅ Automated Training Complete.");
 }
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 🌸 MODE 4: SOULGAIN VS SOULGAIN EXHIBITION
 // ─────────────────────────────────────────────────────────────────────────────
@@ -826,12 +907,12 @@ pub fn run_sg_vs_sg_exhibition() {
     let policy = ProgrammaticChessPolicy { brain: brain_arc.clone() };
     
     let mut game = ChessWorld { 
-        board: Board::default(), history: vec![Board::default().get_hash()], brain: brain_arc 
+        board: Board::default(), history: vec![Board::default().get_hash()], brain: brain_arc.clone() 
     };
 
     while !game.is_terminal() {
         let color_name = if game.board.side_to_move() == Color::White { "White" } else { "Black" };
-        
+
         let config = ReasoningConfig::<WrappedMove> {
             simulations: 800000, max_depth: 20, max_program_len: 8, max_ops_per_candidate: 8,
             exploration_constant: 0.5, length_penalty: 0.1, loop_penalty: 2.0,
