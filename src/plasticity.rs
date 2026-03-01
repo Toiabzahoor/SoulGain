@@ -1,33 +1,30 @@
+use crate::memory::PersistentMemory;
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
-use std::fs::{File, OpenOptions};
-use std::io::{self, BufReader, BufWriter};
-use std::path::Path;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLock, mpsc};
 use std::thread;
 use std::time::{Duration, Instant};
 
-// Any module (Math, TicTacToe, etc.) can implement this to talk to the brain.
+// Any module can implement this to talk to the brain
 pub trait IntoOpcode {
     fn into_opcode(self) -> i64;
 }
 
-// Tell the brain how to read basic numbers (like Tic-Tac-Toe spots!)
 impl IntoOpcode for usize {
     fn into_opcode(self) -> i64 {
         self as i64
     }
 }
 
-// --- CONSTANTS ---
-const A_PLUS: f64 = 0.1;
-const A_MINUS: f64 = 0.12;
-const TAU: f64 = 0.020;
-const WINDOW_S: f64 = 0.1;
-const NORMALIZATION_CAP: f64 = 5.0;
-const REWARD_BOOST: f64 = 0.5;
-const SURPRISE_LOW: f64 = 0.2;
-const SURPRISE_HIGH: f64 = 0.8;
+// --- STDP CONSTANTS ---
+const A_PLUS: f32 = 0.08;
+const A_MINUS: f32 = 0.10;
+const TAU: f32 = 0.025;
+const WINDOW_S: f64 = 0.15;
+const REWARD_BOOST: f32 = 0.6;
+const SURPRISE_LOW: f64 = 0.25;
+const SURPRISE_HIGH: f64 = 0.75;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
 pub enum VMError {
@@ -51,51 +48,10 @@ pub enum Event {
     Error(VMError),
 }
 
-#[derive(Clone, Debug)]
-pub struct PersistentMemory {
-    pub weights: HashMap<Event, HashMap<Event, f64>>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-struct WeightEntry {
-    from: Event,
-    to: Event,
-    weight: f64,
-}
-
-impl PersistentMemory {
-    pub fn new() -> Self {
-        Self { weights: HashMap::new() }
-    }
-
-    pub fn save_to_file<P: AsRef<Path>>(&self, path: P) -> io::Result<()> {
-        let file = OpenOptions::new().write(true).create(true).truncate(true).open(path)?;
-        let entries: Vec<WeightEntry> = self.weights.iter().flat_map(|(from, outgoing)| {
-            outgoing.iter().map(|(to, weight)| WeightEntry {
-                from: *from, to: *to, weight: *weight,
-            })
-        }).collect();
-        
-        // 🌟 SWAPPED TO BINCODE FOR LIGHTNING FAST SAVING 🌟
-        bincode::serialize_into(BufWriter::new(file), &entries)
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
-        Ok(())
-    }
-
-    pub fn load_from_file<P: AsRef<Path>>(path: P) -> io::Result<Self> {
-        let file = File::open(path)?;
-        
-        // 🌟 SWAPPED TO BINCODE FOR INSTANT RECALL 🌟
-        let entries: Vec<WeightEntry> = match bincode::deserialize_from(BufReader::new(file)) {
-            Ok(entries) => entries,
-            Err(_) => return Ok(Self::new()),
-        };
-        let mut weights: HashMap<Event, HashMap<Event, f64>> = HashMap::new();
-        for entry in entries {
-            weights.entry(entry.from).or_insert_with(HashMap::new).insert(entry.to, entry.weight);
-        }
-        Ok(Self { weights })
-    }
+pub fn hash_event(event: &Event) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    event.hash(&mut hasher);
+    hasher.finish()
 }
 
 #[derive(Clone)]
@@ -113,7 +69,15 @@ enum PlasticityMessage {
 impl Plasticity {
     pub fn new() -> Self {
         let (tx, rx) = mpsc::channel::<PlasticityMessage>();
-        let memory = Arc::new(RwLock::new(PersistentMemory::new()));
+        
+        let memory: Arc<RwLock<PersistentMemory>> = match PersistentMemory::new() {
+            Ok(mem) => Arc::new(RwLock::new(mem)),
+            Err(e) => {
+                println!("🚨 Failed to initialize brain arena: {}", e);
+                panic!("Cannot start without persistent memory");
+            }
+        };
+        
         let mem_clone = memory.clone();
 
         thread::spawn(move || {
@@ -129,35 +93,32 @@ impl Plasticity {
                     return;
                 }
 
-                let mut updates: Vec<(Event, Event, f64)> = Vec::new();
-                let mut normalize_sources: HashSet<Event> = HashSet::new();
+                let mut updates: Vec<(Event, Event, f32)> = Vec::new();
 
                 let (ltp_multiplier, ltd_multiplier) = if surprise_gate <= SURPRISE_LOW {
-                    (0.5, 2.0)
+                    (0.3, 2.5)
                 } else if surprise_gate >= SURPRISE_HIGH {
-                    (100.0, 0.1)
+                    (3.0, 0.2)
                 } else {
                     (1.0, 1.0)
                 };
 
                 for (past_event, past_time) in recent_events.iter() {
-                    let delta_t = current_time.duration_since(*past_time).as_secs_f64();
-                    if delta_t <= 0.0 || delta_t >= WINDOW_S { continue; }
+                    let delta_t = current_time.duration_since(*past_time).as_secs_f64() as f32;
+                    if delta_t <= 0.0 || delta_t >= WINDOW_S as f32 { continue; }
 
                     match current_event {
                         Event::Reward(intensity) => {
-                            let scale = intensity as f64 / 100.0;
-                            if scale > 0.0 {
+                            let scale = (intensity.abs() as f32 / 100.0).clamp(0.0, 1.0);
+                            if intensity > 0 {
                                 let reward_change = (REWARD_BOOST * scale) * (-delta_t / TAU).exp();
                                 updates.push((*past_event, current_event, reward_change));
-                                normalize_sources.insert(*past_event);
                             }
                             continue;
                         }
                         Event::Error(_) => {
                             let penalty = -REWARD_BOOST * (-delta_t / TAU).exp();
                             updates.push((*past_event, current_event, penalty));
-                            normalize_sources.insert(*past_event);
                             continue;
                         }
                         _ => {}
@@ -168,29 +129,21 @@ impl Plasticity {
 
                     let ltd_change = A_MINUS * ltd_multiplier * (-delta_t / TAU).exp();
                     updates.push((current_event, *past_event, -ltd_change));
-
-                    normalize_sources.insert(*past_event);
                 }
 
                 if !updates.is_empty() {
                     if let Ok(mut mem) = mem_clone.write() {
                         for (from, to, delta) in updates {
-                            let weight = mem.weights.entry(from).or_insert_with(HashMap::new).entry(to).or_insert(0.0);
-                            *weight += delta;
-                        }
-
-                        for past_event in normalize_sources {
-                            let mut sum = 0.0;
-                            if let Some(outgoing) = mem.weights.get(&past_event) {
-                                sum = outgoing.values().sum();
-                            }
-
-                            if sum > NORMALIZATION_CAP {
-                                let factor = NORMALIZATION_CAP / sum;
-                                if let Some(outgoing) = mem.weights.get_mut(&past_event) {
-                                    for w in outgoing.values_mut() { *w *= factor; }
-                                }
-                            }
+                            let from_hash = hash_event(&from);
+                            let to_hash = hash_event(&to);
+                            
+                            let domain = if let Event::ContextWithState { state_hash, .. } = from {
+                                state_hash
+                            } else {
+                                0
+                            };
+                            
+                            mem.apply_update(domain, from_hash, to_hash, delta);
                         }
                     }
                 }
@@ -200,7 +153,9 @@ impl Plasticity {
 
             while let Ok(message) = rx.recv() {
                 match message {
-                    PlasticityMessage::Single(event, time) => { process_event(event, time, &mut recent_events); }
+                    PlasticityMessage::Single(event, time) => { 
+                        process_event(event, time, &mut recent_events); 
+                    }
                     PlasticityMessage::Batch(events) => {
                         if events.is_empty() { continue; }
                         let now = Instant::now();
@@ -213,7 +168,9 @@ impl Plasticity {
                             process_event(event, event_time, &mut recent_events);
                         }
                     }
-                    PlasticityMessage::Sync(reply_tx) => { let _ = reply_tx.send(()); }
+                    PlasticityMessage::Sync(reply_tx) => { 
+                        let _ = reply_tx.send(()); 
+                    }
                 }
             }
         });
@@ -235,131 +192,104 @@ impl Plasticity {
         let _ = rx.recv();
     }
 
-    pub fn best_next_event(&self, from: Event) -> Option<(Event, f64)> {
+    pub fn best_next_event(&self, from: Event) -> Option<(u64, f64)> {
         let mem = self.memory.read().ok()?;
-        let outgoing = mem.weights.get(&from)?;
-        let mut total_weight = 0.0;
-        let mut best: Option<(Event, f64)> = None;
+        let from_hash = hash_event(&from);
+        let bucket = mem.get_bucket(from_hash)?;
 
-        let filtered: Box<dyn Iterator<Item = (Event, f64)> + '_> = match from {
-            Event::ContextWithState { state_hash, .. } => {
-                Box::new(outgoing.iter().filter_map(move |(dst, weight)| {
-                    if let Event::ContextWithState {
-                        state_hash: dst_hash,
-                        ..
-                    } = dst
-                    {
-                        if *dst_hash == state_hash {
-                            Some((*dst, *weight))
-                        } else {
-                            None
-                        }
-                    } else {
-                        Some((*dst, *weight)) 
-                    }
-                }))
-            }
-            _ => Box::new(outgoing.iter().map(|(dst, weight)| (*dst, *weight))),
-        };
+        let mut total_weight: f32 = 0.0;
+        let mut best_target = 0u64;
+        let mut best_weight = -1.0f32;
 
-        for (dst, weight) in filtered {
-            total_weight += weight;
-            let is_better = best.as_ref().map_or(true, |(_, w)| weight > *w);
-            if is_better {
-                best = Some((dst, weight));
+        for syn in &bucket.synapses {
+            if syn.target_hash != 0 {
+                total_weight += syn.weight.max(0.0);
+                if syn.weight > best_weight {
+                    best_weight = syn.weight;
+                    best_target = syn.target_hash;
+                }
             }
         }
 
-        best.map(|(dst, weight)| {
+        if best_target != 0 {
             let confidence = if total_weight > 0.0 {
-                (weight / total_weight).clamp(0.0, 1.0)
+                (best_weight / total_weight).clamp(0.0, 1.0) as f64
             } else {
                 0.0
             };
-            (dst, confidence)
-        })
+            Some((best_target, confidence))
+        } else {
+            None
+        }
     }
 
-    pub fn get_op_distribution<A: Copy + IntoOpcode>(&self, context_event: Event, allowed_ops: &[A]) -> Vec<(A, f32)> {
+    pub fn get_op_distribution<A: Copy + IntoOpcode>(
+        &self, 
+        context_event: Event, 
+        allowed_ops: &[A]
+    ) -> Vec<(A, f32)> {
+        let context_hash = hash_event(&context_event);
+        
         let mem = match self.memory.read() {
             Ok(guard) => guard,
             Err(_) => {
-                return allowed_ops.iter().map(|&op| (op, 1.0 / allowed_ops.len() as f32)).collect();
+                return allowed_ops
+                    .iter()
+                    .map(|&op| (op, 1.0 / allowed_ops.len() as f32))
+                    .collect();
             }
         };
 
         let mut priors = Vec::with_capacity(allowed_ops.len());
-        let mut sum = 0.0;
-        let temperature = 2.0;
+        let mut sum: f32 = 0.0;
+        let temperature: f32 = 1.5;
 
-        // 🌟 NEW: FUZZY HAMMING DISTANCE MATCHING! 🌟
-        // Instead of strict exact hashing, the brain now looks for the 
-        // past memory that most closely physically resembles the current board!
-        let mut best_outgoing = None;
-        let mut min_distance = u32::MAX;
-
-        if let Event::ContextWithState { data: target_data, .. } = context_event {
-            for (key, outgoing) in &mem.weights {
-                if let Event::ContextWithState { data: key_data, .. } = key {
-                    // Count exactly how many structural bits are different between the two universes
-                    let dist: u32 = target_data.iter()
-                        .zip(key_data.iter())
-                        .map(|(a, b)| (a ^ b).count_ones())
-                        .sum();
-
-                    if dist < min_distance {
-                        min_distance = dist;
-                        best_outgoing = Some(outgoing);
-                        if dist == 0 { break; } // Perfect structural match!
-                    }
-                }
-            }
-        } else {
-            best_outgoing = mem.weights.get(&context_event);
-        }
-
-        if let Some(outgoing) = best_outgoing {
+        if let Some(bucket) = mem.get_bucket(context_hash) {
             for &op in allowed_ops {
                 let target_op_id = op.into_opcode();
-                let mut max_weight = 0.05;
-
-                for (evt, w) in outgoing {
-                    if let Event::Opcode { opcode, .. } = evt {
-                        if *opcode == target_op_id {
-                            if *w > max_weight { max_weight = *w; }
-                        }
+                let target_hash = hash_event(&Event::Opcode { 
+                    opcode: target_op_id, 
+                    stack_depth: 0 
+                });
+                
+                let mut weight: f32 = 0.02;
+                
+                for syn in &bucket.synapses {
+                    if syn.target_hash == target_hash {
+                        weight = syn.weight;
+                        break;
                     }
                 }
-
-                let score = max_weight.powf(temperature) as f32;
+                
+                let w = if weight < 0.0 {
+                    0.001
+                } else {
+                    weight.max(0.02)
+                };
+                
+                let score = w.powf(temperature);
                 priors.push((op, score));
                 sum += score;
             }
         } else {
             let uniform = 1.0 / allowed_ops.len() as f32;
-            for &op in allowed_ops { priors.push((op, uniform)); }
+            for &op in allowed_ops { 
+                priors.push((op, uniform)); 
+            }
             return priors;
         }
 
         if sum > 0.0 {
-            for (_, score) in &mut priors { *score /= sum; }
+            for (_, score) in &mut priors { 
+                *score /= sum; 
+            }
         } else {
             let uniform = 1.0 / allowed_ops.len() as f32;
-            for (_, score) in &mut priors { *score = uniform; }
+            for (_, score) in &mut priors { 
+                *score = uniform; 
+            }
         }
 
         priors
-    }
-
-    pub fn save_to_file<P: AsRef<Path>>(&self, path: P) -> io::Result<()> {
-        let mem = self.memory.read().map_err(|_| io::Error::new(io::ErrorKind::Other, "lock poisoned"))?;
-        mem.save_to_file(path)
-    }
-
-    pub fn load_from_file<P: AsRef<Path>>(&self, path: P) -> io::Result<()> {
-        let loaded = PersistentMemory::load_from_file(path)?;
-        let mut mem = self.memory.write().map_err(|_| io::Error::new(io::ErrorKind::Other, "lock poisoned"))?;
-        *mem = loaded;
-        Ok(())
     }
 }
